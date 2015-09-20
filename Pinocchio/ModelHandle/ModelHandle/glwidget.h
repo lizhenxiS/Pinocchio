@@ -10,13 +10,13 @@
 #include "GenerateMesh.h"
 
 
-class W : public QGLWidget, protected QGLFunctions
+class GLWidget : public QGLWidget, protected QGLFunctions
 {
 	Q_OBJECT
 
 public :
-	W(QWidget *parent = 0);
-	~W();
+	GLWidget(QWidget *parent = 0);
+	~GLWidget();
 
 protected :
 	void timerEvent(QTimerEvent *e);

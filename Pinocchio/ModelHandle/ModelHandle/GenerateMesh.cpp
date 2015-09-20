@@ -241,7 +241,6 @@ void GenerateMesh::process()
 	m->normalizeBoundingBox();
 	copy_m->normalizeBoundingBox();
 
-
 	m->computeVertexNormals();
 	copy_m->computeVertexNormals();
 

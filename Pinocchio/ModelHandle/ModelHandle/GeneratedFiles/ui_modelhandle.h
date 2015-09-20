@@ -24,14 +24,14 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWidget>
-#include <wiw.h>
+#include <glwidget.h>
 
 QT_BEGIN_NAMESPACE
 
 class Ui_ModelHandleClass
 {
 public:
-    W *showWidget;
+    GLWidget *showWidget;
     QPushButton *ClearButton;
     QGroupBox *groupBox;
     QWidget *layoutWidget_3;
@@ -141,7 +141,7 @@ public:
         if (ModelHandleClass->objectName().isEmpty())
             ModelHandleClass->setObjectName(QStringLiteral("ModelHandleClass"));
         ModelHandleClass->resize(1400, 600);
-        showWidget = new W(ModelHandleClass);
+        showWidget = new GLWidget(ModelHandleClass);
         showWidget->setObjectName(QStringLiteral("showWidget"));
         showWidget->setGeometry(QRect(0, 0, 600, 600));
         ClearButton = new QPushButton(ModelHandleClass);

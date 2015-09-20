@@ -13,7 +13,7 @@
   <property name="windowTitle">
    <string>ModelHandle</string>
   </property>
-  <widget class="W" name="showWidget" native="true">
+  <widget class="GLWidget" name="showWidget" native="true">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -1587,9 +1587,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>W</class>
+   <class>GLWidget</class>
    <extends>QWidget</extends>
-   <header location="global">wiw.h</header>
+   <header location="global">glwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

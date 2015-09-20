@@ -53,12 +53,6 @@
     <ClCompile Include="GeneratedFiles\qrc_modelhandle.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
-    <ClCompile Include="GeneratedFiles\Debug\moc_wiw.cpp">
-      <Filter>Generated Files\Debug</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneratedFiles\Release\moc_wiw.cpp">
-      <Filter>Generated Files\Release</Filter>
-    </ClCompile>
     <ClCompile Include="GenerateMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,9 +63,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="skeleton.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="wiw.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SkeletonModel.cpp">
@@ -89,6 +80,18 @@
     <ClCompile Include="taucs_util.cpp">
       <Filter>TAUCS</Filter>
     </ClCompile>
+    <ClCompile Include="GeneratedFiles\Debug\moc_glwidget.cpp">
+      <Filter>Generated Files\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GeneratedFiles\Release\moc_glwidget.cpp">
+      <Filter>Generated Files\Release</Filter>
+    </ClCompile>
+    <ClCompile Include="glwidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MyVerticeMesh.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="modelhandle.h">
@@ -100,7 +103,7 @@
     <CustomBuild Include="modelhandle.qrc">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="wiw.h">
+    <CustomBuild Include="glwidget.h">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>
@@ -194,6 +197,9 @@
     </ClInclude>
     <ClInclude Include="taucs_util.h">
       <Filter>TAUCS</Filter>
+    </ClInclude>
+    <ClInclude Include="MyVerticeMesh.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

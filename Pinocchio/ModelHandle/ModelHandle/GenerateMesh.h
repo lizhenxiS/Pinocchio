@@ -8,6 +8,7 @@
 #include "skeleton.h"
 #include "attachment.h"
 #include "pinocchioApi.h"
+#include "MyVerticeMesh.h"
 #include <map>
 
 

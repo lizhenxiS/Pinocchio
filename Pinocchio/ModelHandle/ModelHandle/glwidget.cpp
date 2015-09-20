@@ -9,7 +9,7 @@
 #include "attachment.h"
 #include "pinocchioApi.h"
 #include <fstream>
-#include "wiw.h"
+#include "glwidget.h"
 #include <QtOpenGL\qgl.h>
 #include <QtGui\QMouseEvent>
 
@@ -73,7 +73,7 @@ void Draw_Circle(MOUSE_POINT s)
 }
 
 
-W::W(QWidget *parent)
+GLWidget::GLWidget(QWidget *parent)
 : QGLWidget(parent)
 {
 	drawSkeleton = true;
@@ -90,17 +90,17 @@ W::W(QWidget *parent)
 	setMouseTracking(true);
 }
 
-W::~W()
+GLWidget::~GLWidget()
 {
 
 }
 
-void W::timerEvent(QTimerEvent *)
+void GLWidget::timerEvent(QTimerEvent *)
 {
 	updateGL();
 }
 
-void W::mouseEvent(QMouseEvent *e)
+void GLWidget::mouseEvent(QMouseEvent *e)
 {
 	if (e->button() == Qt::LeftButton)
 	{
@@ -109,7 +109,7 @@ void W::mouseEvent(QMouseEvent *e)
 	}
 }
 
-void W::mousePressEvent(QMouseEvent *e)
+void GLWidget::mousePressEvent(QMouseEvent *e)
 {
 	if (e->button() == Qt::LeftButton)
 	{
@@ -125,7 +125,7 @@ void W::mousePressEvent(QMouseEvent *e)
 	}
 }
 
-void W::mouseReleaseEvent(QMouseEvent *e)
+void GLWidget::mouseReleaseEvent(QMouseEvent *e)
 {
 	if (e->button() == Qt::LeftButton)
 	{
@@ -133,7 +133,7 @@ void W::mouseReleaseEvent(QMouseEvent *e)
 	}
 }
 
-void W::mouseMoveEvent(QMouseEvent *e)
+void GLWidget::mouseMoveEvent(QMouseEvent *e)
 {
 	if (left_button_down)
 	{
@@ -144,7 +144,7 @@ void W::mouseMoveEvent(QMouseEvent *e)
 	}
 }
 
-void W::wheelEvent(QWheelEvent *e)
+void GLWidget::wheelEvent(QWheelEvent *e)
 {
 	if (e->angleDelta().y() > 0)
 	{
@@ -162,7 +162,7 @@ void W::wheelEvent(QWheelEvent *e)
 
 GLfloat light_position[] = { 1.0, -1.0, 1.0, 0.0 };
 
-void W::SetCamera(GLdouble x, GLdouble y)
+void GLWidget::SetCamera(GLdouble x, GLdouble y)
 {
 	GLfloat alpha, fy;                  /*和它的名字一样，不过是单位是弧度*/
 	if ((polar.fy + y)>5.0f && (polar.fy + y)<175.0f)
@@ -190,13 +190,13 @@ void W::SetCamera(GLdouble x, GLdouble y)
 }
 
 
-void W::inputFileName(const string& file)
+void GLWidget::inputFileName(const string& file)
 {
 	fileName = file;
 	initializeGL();
 }
 
-void W::initializeGL()
+void GLWidget::initializeGL()
 {
 
 	if (fileName.size() == 0)
@@ -237,7 +237,7 @@ void W::initializeGL()
 	timer.start(12, this);
 }
 
-void W::resizeGL(int w, int h)
+void GLWidget::resizeGL(int w, int h)
 {
 	glViewport(0, 0, (GLsizei)w, (GLsizei)h);
 	glMatrixMode(GL_PROJECTION);
@@ -270,7 +270,7 @@ bool isDiff(double* m1, double* m2)
 
 
 
-void W::paintGL()
+void GLWidget::paintGL()
 {
 	if (fileName.size() == 0)
 		return;
