@@ -25,6 +25,7 @@ int rotateZ = 0;
 
 bool drawSkeleton;
 bool drawMesh;
+bool drawCoord;
 bool hasModel = false;
 bool left_button_down = false;
 
@@ -223,6 +224,13 @@ void GLWidget::initializeGL()
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);	//光源位置
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, white_light);		//光的散射强度
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white_light);		//光的镜面强度
+
+	//GLfloat secondPos[4] = { -light_position[0],
+	//	-light_position[1], -light_position[2], -light_position[3] };
+	//glLightfv(GL_LIGHT1, GL_POSITION, light_position);	//光源位置
+	//glLightfv(GL_LIGHT1, GL_DIFFUSE, white_light);		//光的散射强度
+	//glLightfv(GL_LIGHT1, GL_SPECULAR, white_light);		//光的镜面强度
+
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
 
 	glEnable(GL_DEPTH_TEST);
@@ -268,7 +276,25 @@ bool isDiff(double* m1, double* m2)
 	return bret;
 }
 
-
+void DrawCoordinary()
+{
+	glLineWidth(5.0);
+	glColor3d(1, 0, 0);
+	glBegin(GL_LINES);
+	glVertex3d(0, 0, 0);
+	glVertex3d(10, 0, 0);
+	glEnd();
+	glColor3d(0, 1, 0);
+	glBegin(GL_LINES);
+	glVertex3d(0, 0, 0);
+	glVertex3d(0, 10, 0);
+	glEnd();
+	glColor3d(0, 0, 1);
+	glBegin(GL_LINES);
+	glVertex3d(0, 0, 0);
+	glVertex3d(0, 0, 10);
+	glEnd();
+}
 
 void GLWidget::paintGL()
 {
@@ -356,17 +382,24 @@ void GLWidget::paintGL()
 	if (drawSkeleton)
 	{
 		model->drawSkeleton();
+		//model->drawSkeletonPoint();
 	}
 	if (drawMesh)
 	{
 		model->drawMesh();
 	}
+	if (drawCoord)
+	{
+		DrawCoordinary();
+	}
 				
 	//Draw_Circle(curpt);
-
+	
 
 	glFlush();
 }
+
+
 
 
 

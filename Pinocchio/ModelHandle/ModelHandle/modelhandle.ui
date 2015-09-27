@@ -1583,6 +1583,19 @@
     <string>Stress</string>
    </property>
   </widget>
+  <widget class="QCheckBox" name="coord_box">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>500</y>
+     <width>91</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>coordinary</string>
+   </property>
+  </widget>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

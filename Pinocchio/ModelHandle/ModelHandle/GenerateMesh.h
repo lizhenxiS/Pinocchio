@@ -10,7 +10,7 @@
 #include "pinocchioApi.h"
 #include "MyVerticeMesh.h"
 #include <map>
-
+#include "BVHData.h"
 
 
 struct ArgData
@@ -38,7 +38,9 @@ struct changeBone
 	double scale;
 };
 
-
+/*
+模型实际绘制类
+*/
 class GenerateMesh
 {
 public:
@@ -62,6 +64,9 @@ public:
 
 	//绘制骨骼
 	void drawSkeleton();
+
+	//绘制骨骼结点
+	void drawSkeletonPoint();
 
 	//绘制模型
 	void drawMesh();
@@ -107,6 +112,8 @@ private:
 	//后续骨骼数组（all = 无意义 -1）
 	int* aftIndex;
 
+	//BVH数据
+	BVHData* BvhData;
 
 	//各骨骼距离规范化energy
 	double* deltaEnergy;
@@ -124,7 +131,7 @@ private:
 	//表面顶点模型
 	Mesh* m;
 	//表面顶点模型副本，保持原始模型(原始数据)
-	Mesh* copy_m;
+	MyVerticeMesh* copy_m;
 	//来自骨骼增长的模型增长
 	vector<Vector3> delta_skeleton;
 	//来自规范化的模型增长

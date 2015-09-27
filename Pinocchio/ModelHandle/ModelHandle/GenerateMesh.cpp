@@ -8,6 +8,7 @@
 #include <glut.h>
 #include "taucs_matrix.h"
 #include "taucs_solver.h"
+#include <time.h>
 
 using namespace std;
 
@@ -50,7 +51,7 @@ GenerateMesh::GenerateMesh(const string& file)
 
 	modelFile = file;
 	m = new Mesh(file);
-	copy_m = new Mesh(file);
+	//copy_m = new Mesh(file);
 
 	int verts = m->vertices.size();
 
@@ -93,8 +94,9 @@ GenerateMesh::GenerateMesh(const string& file)
 	Smooth_size = 0;
 	Stress_size = 0;
 	cout << m->edges.size() << " ___half" << endl;
-	cout << "Generate Mesh Success !" << endl;
-
+	cout << "Generate Mesh Success !" << embedding.size() << endl;
+	this->BvhData = new BVHData(embedding, preIndex);
+	this->BvhData->printData();
 }
 
 void PutStringToInt(string s, int *num)
@@ -239,20 +241,26 @@ void GenerateMesh::process()
 	ArgData a;
 
 	m->normalizeBoundingBox();
-	copy_m->normalizeBoundingBox();
+	//copy_m->normalizeBoundingBox();
 
 	m->computeVertexNormals();
-	copy_m->computeVertexNormals();
+	//copy_m->computeVertexNormals();
 
+	copy_m = new MyVerticeMesh(*m);
 
 	//初始化骨架
 	Skeleton given = HumanSkeleton();
 	given.scale(a.skelScale * 0.7);
 
+	//system("time");
+	
+
 	if (!a.noFit) { //do everything
 		//组合骨骼人体数据
 		SMdata = autorig(given, *m);
 	}
+
+	//system("time");
 	
 
 	countBone = SMdata.embedding.size();
@@ -616,7 +624,14 @@ void GenerateMesh::drawSkeleton()
 	}
 }
 
-
+//绘制骨骼结点
+void GenerateMesh::drawSkeletonPoint()
+{
+	for (int i = 0; i < countBone; i++)
+	{
+		drawPoint(embedding[i], thin * 2, Vector3(0, 0, 1));
+	}
+}
 
 //绘制模型
 void GenerateMesh::drawMesh()

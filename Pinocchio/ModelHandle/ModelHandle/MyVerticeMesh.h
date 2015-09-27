@@ -4,6 +4,9 @@
 
 #include "mesh.h"
 
+/*
+作为Mesh类的自定义类，仅保留Mesh中的点的位置信息
+*/
 class MyVerticeMesh{
 
 public:

@@ -5,6 +5,9 @@
 #include <iostream>
 #include <glut.h>
 
+#define PI 3.1415926
+
+//获得空间两点距离
 double getDistance(Vector3 bone_a, Vector3 bone_b)
 {
 	double len;
@@ -91,6 +94,33 @@ Vector3 SBj(Vector3 bone_a, Vector3 bone_b, Vector3 bone_a_, Vector3 bone_b_)
 	return result;
 }
 
+static int awcount = 0;
+
+//空间中三点 ABC  获得角ABC 返回值范围为-180/180
+double AngleInSpace(Vector3 pa, Vector3 pb, Vector3 pc)
+{
+	double lenAB = getDistance(pa, pb) * 10000;
+	double lenBC = getDistance(pb, pc) * 10000;
+	double lenAC = getDistance(pa, pc) * 10000;
+
+	//余弦定理
+	double cosTheta = (lenAB * lenAB + lenBC * lenBC - lenAC * lenAC) / (2 * lenAB * lenBC);
+	double result = acos(cosTheta) * 180 / PI;
+
+	//if (awcount == 0)
+	//{
+	//	cout << lenAB << ","
+	//		<< lenBC << ","
+	//		<< lenAC << ","
+	//		<< cosTheta << ","
+	//		<< result << endl;
+	//	awcount++;
+	//}
+
+	return result;
+}
+
+
 //joint weight
 double EBjVi(Vector3 bone_a, Vector3 bone_b, Vector3 v)
 {
@@ -105,4 +135,12 @@ void drawLine(Vector3& lina, Vector3& linb, Vector3& color, double thick)
 	glVertex3f(lina[0], lina[1], lina[2]);
 	glVertex3f(linb[0], linb[1], linb[2]);
 	glEnd();
+}
+
+void drawPoint(Vector3 point, double radius, Vector3 color)
+{
+	glColor3d(color[0], color[1], color[2]);
+	glTranslated(point[0], point[1], point[2]);
+	glutSolidSphere(radius, 3, 3);
+	glTranslated(-point[0], -point[1], -point[2]);
 }

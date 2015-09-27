@@ -15,6 +15,9 @@ double getDistance(Vector3 bone_a, Vector3 bone_b);
 //判断两条射线ab, xy是否同向
 bool sameDirection(Vector3 a, Vector3 b, Vector3 x, Vector3 y);
 
+//空间中三点 ABC  获得角ABC 返回值范围为-180/180
+double AngleInSpace(Vector3 pa, Vector3 pb, Vector3 pc);
+
 //判断一点v是否在线段ab内
 bool isInLine(Vector3 v, Vector3 a, Vector3 b);
 
@@ -33,6 +36,7 @@ double EBjVi(Vector3 bone_a, Vector3 bone_b, Vector3 v);
 
 void drawLine(Vector3& lina, Vector3& linb, Vector3& color, double thick);
 
+void drawPoint(Vector3 point, double radius, Vector3 color);
 
 #endif	//GENERATETOOL_H
 

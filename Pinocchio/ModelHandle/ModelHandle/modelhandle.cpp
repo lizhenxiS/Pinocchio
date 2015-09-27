@@ -10,6 +10,7 @@ extern int rotateY;
 extern int rotateZ;
 extern bool drawSkeleton;
 extern bool drawMesh;
+extern bool drawCoord;
 extern bool changeFromMap;
 extern bool SmoothState;
 extern bool StressState;
@@ -41,6 +42,14 @@ void ModelHandle::slotMeshBox()
 		drawMesh = true;
 	else
 		drawMesh = false;
+}
+
+void ModelHandle::slotCoordBox()
+{
+	if (ui.coord_box->isChecked())
+		drawCoord = true;
+	else
+		drawCoord = false;
 }
 
 void ModelHandle::slotSmoothBox()
@@ -112,6 +121,7 @@ void ModelHandle::disableSlider()
 
 	ui.skeleton_box->setEnabled(false);
 	ui.mesh_box->setEnabled(false);
+	ui.coord_box->setEnabled(false);
 	ui.smoothBox->setEnabled(false);
 	ui.stressBox->setEnabled(false);
 
@@ -165,6 +175,7 @@ void ModelHandle::enableSlider()
 
 	ui.skeleton_box->setEnabled(true);
 	ui.mesh_box->setEnabled(true);
+	ui.coord_box->setEnabled(true);
 	ui.smoothBox->setEnabled(true);
 	ui.stressBox->setEnabled(true);
 
@@ -216,6 +227,7 @@ void ModelHandle::initSlider()
 
 	ui.skeleton_box->setChecked(true);
 	ui.mesh_box->setChecked(true);
+	ui.coord_box->setChecked(true);
 }
 
 void ModelHandle::setSlider()
@@ -311,6 +323,7 @@ void ModelHandle::setConnect()
 
 	connect(ui.skeleton_box, SIGNAL(stateChanged(int)), this, SLOT(slotSkeletonBox()));
 	connect(ui.mesh_box, SIGNAL(stateChanged(int)), this, SLOT(slotMeshBox()));
+	connect(ui.coord_box, SIGNAL(stateChanged(int)), this, SLOT(slotCoordBox()));
 	connect(ui.smoothBox, SIGNAL(stateChanged(int)), this, SLOT(slotSmoothBox()));
 	connect(ui.stressBox, SIGNAL(stateChanged(int)), this, SLOT(slotStressBox()));
 

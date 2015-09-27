@@ -135,6 +135,7 @@ public:
     QPushButton *energyButton;
     QCheckBox *smoothBox;
     QCheckBox *stressBox;
+    QCheckBox *coord_box;
 
     void setupUi(QWidget *ModelHandleClass)
     {
@@ -591,6 +592,9 @@ public:
         stressBox = new QCheckBox(ModelHandleClass);
         stressBox->setObjectName(QStringLiteral("stressBox"));
         stressBox->setGeometry(QRect(930, 190, 71, 16));
+        coord_box = new QCheckBox(ModelHandleClass);
+        coord_box->setObjectName(QStringLiteral("coord_box"));
+        coord_box->setGeometry(QRect(830, 500, 91, 16));
 
         retranslateUi(ModelHandleClass);
 
@@ -654,6 +658,7 @@ public:
         energyButton->setText(QApplication::translate("ModelHandleClass", "E", 0));
         smoothBox->setText(QApplication::translate("ModelHandleClass", "Smooth", 0));
         stressBox->setText(QApplication::translate("ModelHandleClass", "Stress", 0));
+        coord_box->setText(QApplication::translate("ModelHandleClass", "coordinary", 0));
     } // retranslateUi
 
 };

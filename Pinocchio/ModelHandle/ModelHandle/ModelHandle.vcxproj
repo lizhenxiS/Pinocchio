@@ -80,6 +80,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BVHData.cpp" />
+    <ClCompile Include="BVHPoint.cpp" />
     <ClCompile Include="GeneratedFiles\Debug\moc_glwidget.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
     </ClCompile>
@@ -138,6 +140,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="attachment.h" />
+    <ClInclude Include="BVHData.h" />
+    <ClInclude Include="BVHPoint.h" />
     <ClInclude Include="debugging.h" />
     <ClInclude Include="deriv.h" />
     <ClInclude Include="dtree.h" />
