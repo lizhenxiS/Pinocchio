@@ -22,6 +22,8 @@ extern GLdouble modelView[16];
 extern GLdouble projView[16];
 extern GLint viewView[4];
 
+#define PI 3.1415926
+
 struct CAMERA
 {
 	GLdouble xeye;
@@ -287,6 +289,7 @@ void GenerateMesh::process()
 	for (int y = 0; y < SMdata.embedding.size(); y++)
 	{
 		embedding.push_back(SMdata.embedding[y]);
+		CurEmbedding.push_back(SMdata.embedding[y]);
 	}
 
 	//各骨骼距离规范化energy
@@ -330,7 +333,7 @@ void GenerateMesh::ChangeGrowScale(const int bone, const double scale)
 	MeshGrowCustom();
 }
 
-//模型期待增长计算
+//更新模型因骨骼变化而变化的期待模型各点位置
 void GenerateMesh::CountGrowCustom()
 {
 	for (int i = 0; i < m->vertices.size(); i++)
@@ -493,6 +496,9 @@ void dis_CG()
 //骨骼变化后模型映射变化处理
 void GenerateMesh::ChangeFromSkeleton()
 {
+	////BVHData 更新
+	//delete BvhData;
+	//BvhData = new BVHData(embedding, preIndex);
 
 	//顶点临时替代
 	Vector3 temp;
@@ -555,6 +561,115 @@ void GenerateMesh::changeSkeletonFromMap()
 	}
 }
 
+//任意自由度改变骨骼，并相对静止牵动关联骨骼
+//bone 为骨骼序数，从1开始
+void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta, double length)
+{
+	BvhData->data[bone].angle_alpha = alpha;
+	BvhData->data[bone].angle_beta = beta;
+	//角度转换为弧度
+	alpha = alpha * PI / 180;
+	beta = beta * PI / 180;
+
+	//temp 改变目标骨骼末端，获得改变向量 将关联骨骼均用改变向量处理
+	int preBone = preIndex[bone];
+	//Vector3 oldPos = embedding[bone];	/*此处略去，需用默认位置代表改变前的原始位置进行计算*/
+	Vector3 prePos = embedding[preBone];
+	changedIndex[bone] = true;
+
+	int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
+	for (int i = 0; i < (countBone - 2); i++)
+	{
+		beMoved[i] = 0;
+	}
+	int afterList = aftIndex[bone];
+	int beMoved_index = 0;
+	while (afterList != -1)
+	{
+		beMoved[beMoved_index] = afterList;
+		afterList = aftIndex[afterList];
+		beMoved_index++;
+	}
+
+	RelayAxes reAxes = this->BvhData->defaultSkeleton[bone - 1].defaultAxes;
+	Vector3 targetPos;
+	double skeVector[4];
+	double tempResult1[4];
+	double tempResult2[4];
+	double tempInX[16];
+	double tempInY[16];
+	double tempInZ[16];
+
+	switch (reAxes)
+	{
+	case Axes_X:
+		skeVector[0] = length;
+		skeVector[1] = 0;
+		skeVector[2] = 0;
+		skeVector[3] = 0;
+		rotateInZ(beta, tempInZ);
+		rotateInY(alpha, tempInY);
+		lineRotate(skeVector, tempInZ, tempResult1);
+		lineRotate(tempResult1, tempInY, tempResult2);
+		targetPos[0] = prePos[0] + tempResult2[0];
+		targetPos[1] = prePos[1] + tempResult2[1];
+		targetPos[2] = prePos[2] + tempResult2[2];
+		break;
+	case Axes_Y:
+		skeVector[0] = 0;
+		skeVector[1] = length;
+		skeVector[2] = 0;
+		skeVector[3] = 0;
+		rotateInX(beta, tempInX);
+		rotateInZ(alpha, tempInZ);
+		lineRotate(skeVector, tempInX, tempResult1);
+		lineRotate(tempResult1, tempInZ, tempResult2);
+		targetPos[0] = prePos[0] + tempResult2[0];
+		targetPos[1] = prePos[1] + tempResult2[1];
+		targetPos[2] = prePos[2] + tempResult2[2];
+		break;
+	case Axes_Z:
+		skeVector[0] = 0;
+		skeVector[1] = 0;
+		skeVector[2] = length;
+		skeVector[3] = 0;
+		rotateInX(alpha, tempInX);
+		rotateInY(beta, tempInY);
+		lineRotate(skeVector, tempInY, tempResult1);
+		lineRotate(tempResult1, tempInX, tempResult2);
+		targetPos[0] = prePos[0] + tempResult2[0];
+		targetPos[1] = prePos[1] + tempResult2[1];
+		targetPos[2] = prePos[2] + tempResult2[2];
+		break;
+	default:
+		break;
+	}
+
+	Vector3 oldPos = embedding[bone];
+	Vector3 transformation = targetPos - oldPos;
+
+	embedding[bone] = targetPos;
+	for (int i = 0; i < beMoved_index; i++)
+	{
+		int tempIndex = beMoved[i];
+
+		//此处对于每个被动关联骨骼都只处理一个端点，因为一个端点即代表该骨骼，剩余端点会由后续骨骼处理
+		embedding[tempIndex][0] = embedding[tempIndex][0] + transformation[0];
+		embedding[tempIndex][1] = embedding[tempIndex][1] + transformation[1];
+		embedding[tempIndex][2] = embedding[tempIndex][2] + transformation[2];
+	}
+
+	cout << "\nCUR CHANGE SKELETON " << bone << endl
+		<< "PRE POINT " << preBone << endl
+		<< "NEW ANGLES " << BvhData->data[bone].angle_alpha << " " << BvhData->data[bone].angle_beta << endl
+		<< "OLD POS " << oldPos << endl
+		<< "NEW POS " << targetPos << endl;
+
+	ChangeFromSkeleton();
+
+	CountGrowCustom();
+}
+
 //同步改变单一骨骼
 void GenerateMesh::changeSingleSkeleton(const int bone, const double scale)
 {
@@ -565,7 +680,7 @@ void GenerateMesh::changeSingleSkeleton(const int bone, const double scale)
 	else
 		changedIndex[bone] = true;
 
-	int* beMoved = new int[countBone - 2];
+	int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
 	for (int i = 0; i < (countBone - 2); i++)
 	{
 		beMoved[i] = 0;
@@ -693,6 +808,12 @@ void GenerateMesh::clearSkeletonVector()
 //清空模型变化 
 void GenerateMesh::clearModelChange()
 {
+
+	for (int i = 0; i < countBone; i++)
+	{
+		changedIndex[i] = false;
+	}
+
 	for (int i = 0; i < m->vertices.size(); i++)
 	{
 		m->vertices[i].pos[0] = copy_m->vertices[i].pos[0];

@@ -6,10 +6,10 @@ BVHPoint::BVHPoint()
 
 }
 
-BVHPoint::BVHPoint(double x, double y, double z, double l)
+BVHPoint::BVHPoint(RelayAxes reAxes, double alpha, double beta, double len)
 {
-	this->theta_x = x;
-	this->theta_y = y;
-	this->theta_z = z;
-	this->length = l;
+	this->defaultAxes = reAxes;
+	this->angle_alpha = alpha;
+	this->angle_beta = beta;
+	this->length = len;
 }

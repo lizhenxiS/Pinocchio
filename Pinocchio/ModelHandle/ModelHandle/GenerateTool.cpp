@@ -4,8 +4,118 @@
 #include <GL\glew.h>
 #include <iostream>
 #include <glut.h>
+#include <sstream>
 
 #define PI 3.1415926
+
+//计算直线绕某个轴旋转所得矩阵 4x1 4x4 4x1
+void lineRotate(double* lineVector, double* rotateVector, double* resultVector)
+{
+	resultVector[0] =
+		rotateVector[0] * lineVector[0]
+		+ rotateVector[1] * lineVector[1]
+		+ rotateVector[2] * lineVector[2]
+		+ rotateVector[3] * lineVector[3];
+	resultVector[1] =
+		rotateVector[4] * lineVector[0]
+		+ rotateVector[5] * lineVector[1]
+		+ rotateVector[6] * lineVector[2]
+		+ rotateVector[7] * lineVector[3];
+	resultVector[2] =
+		rotateVector[8] * lineVector[0]
+		+ rotateVector[9] * lineVector[1]
+		+ rotateVector[10] * lineVector[2]
+		+ rotateVector[11] * lineVector[3];
+	resultVector[3] =
+		rotateVector[12] * lineVector[0]
+		+ rotateVector[13] * lineVector[1]
+		+ rotateVector[14] * lineVector[2]
+		+ rotateVector[15] * lineVector[3];
+	//cout << "linevector " << lineVector[0] << " "
+	//	<< lineVector[1] << " "
+	//	<< lineVector[2] << " "
+	//	<< lineVector[3] << " " << endl;
+	//cout << "rotatevector " << rotateVector[0] << " "
+	//	<< rotateVector[1] << " "
+	//	<< rotateVector[2] << " "
+	//	<< rotateVector[3] << " " << endl;
+	//cout << "result!!! " << resultVector[0] << " "
+	//	<< resultVector[1] << " "
+	//	<< resultVector[2] << " "
+	//	<< resultVector[3] << " " << endl;
+}
+
+//计算X轴旋转矩阵
+void rotateInX(double angle, double* result)
+{
+	result[0] = 1;
+	result[1] = 0;
+	result[2] = 0;
+	result[3] = 0;
+
+	result[4] = 0;
+	result[5] = cos(angle);
+	result[6] = -sin(angle);
+	result[7] = 0;
+
+	result[8] = 0;
+	result[9] = sin(angle);
+	result[10] = cos(angle);
+	result[11] = 0;
+
+	result[12] = 0;
+	result[13] = 0;
+	result[14] = 0;
+	result[15] = 1;
+};
+
+//计算Y轴旋转矩阵
+void rotateInY(double angle, double* result)
+{
+	result[0] = cos(angle);
+	result[1] = 0;
+	result[2] = sin(angle);
+	result[3] = 0;
+
+	result[4] = 0;
+	result[5] = 1;
+	result[6] = 0;
+	result[7] = 0;
+
+	result[8] = -sin(angle);
+	result[9] = 0;
+	result[10] = cos(angle);
+	result[11] = 0;
+
+	result[12] = 0;
+	result[13] = 0;
+	result[14] = 0;
+	result[15] = 1;
+}
+
+//计算Z轴旋转矩阵
+void rotateInZ(double angle, double* result)
+{
+	result[0] = cos(angle);
+	result[1] = -sin(angle);
+	result[2] = 0;
+	result[3] = 0;
+
+	result[4] = sin(angle);
+	result[5] = cos(angle);
+	result[6] = 0;
+	result[7] = 0;
+
+	result[8] = 0;
+	result[9] = 0;
+	result[10] = 1;
+	result[11] = 0;
+
+	result[12] = 0;
+	result[13] = 0;
+	result[14] = 0;
+	result[15] = 1;
+}
 
 //获得空间两点距离
 double getDistance(Vector3 bone_a, Vector3 bone_b)
@@ -143,4 +253,24 @@ void drawPoint(Vector3 point, double radius, Vector3 color)
 	glTranslated(point[0], point[1], point[2]);
 	glutSolidSphere(radius, 3, 3);
 	glTranslated(-point[0], -point[1], -point[2]);
+}
+
+string toString(double num)
+{
+	stringstream ss;
+	ss << num;
+	string result;
+	ss >> result;
+
+	return result;
+}
+
+double toDouble(string str)
+{
+	stringstream ss;
+	ss << str;
+	double result;
+	ss >> result;
+
+	return result;
 }

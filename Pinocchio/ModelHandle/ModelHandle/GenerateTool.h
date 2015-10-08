@@ -7,10 +7,22 @@
 #include "skeleton.h"
 #include "attachment.h"
 #include "pinocchioApi.h"
-
+#include <iostream>
 
 
 double getDistance(Vector3 bone_a, Vector3 bone_b);
+
+//计算直线绕某个轴旋转所得矩阵 4x1 4x4 4x1
+void lineRotate(double* lineVector, double* rotateVector, double* resultVector);
+
+//计算X轴旋转矩阵
+void rotateInX(double angle, double* result);
+
+//计算X轴旋转矩阵
+void rotateInY(double angle, double* result);
+
+//计算X轴旋转矩阵
+void rotateInZ(double angle, double* result);
 
 //判断两条射线ab, xy是否同向
 bool sameDirection(Vector3 a, Vector3 b, Vector3 x, Vector3 y);
@@ -37,6 +49,10 @@ double EBjVi(Vector3 bone_a, Vector3 bone_b, Vector3 v);
 void drawLine(Vector3& lina, Vector3& linb, Vector3& color, double thick);
 
 void drawPoint(Vector3 point, double radius, Vector3 color);
+
+string toString(double num);
+
+double toDouble(string str);
 
 #endif	//GENERATETOOL_H
 

@@ -56,6 +56,9 @@ public:
 	//骨骼变化后模型映射变化处理
 	void ChangeFromSkeleton();
 
+	//任意自由度改变骨骼，并相对静止牵动关联骨骼
+	void changeSkeleton(const int bone, double alpha, double beta, double length);
+
 	//同步改变单一骨骼
 	void changeSingleSkeleton(const int bone, const double scale);
 
@@ -95,6 +98,9 @@ public:
 	//寻找点击范围内点
 	void FindVertex(double x, double y);
 
+	//BVH数据
+	BVHData* BvhData;
+
 	//更改比例
 	/********************************************/
 
@@ -112,8 +118,7 @@ private:
 	//后续骨骼数组（all = 无意义 -1）
 	int* aftIndex;
 
-	//BVH数据
-	BVHData* BvhData;
+	
 
 	//各骨骼距离规范化energy
 	double* deltaEnergy;
@@ -127,6 +132,8 @@ private:
 	vector<Vector3> embedding;
 	//骨骼+模型结果数据(原始数据)
 	PinocchioOutput SMdata;
+	//骨骼模型(欧拉变换后的当前固定角度模型)
+	vector<Vector3> CurEmbedding;
 
 	//表面顶点模型
 	Mesh* m;

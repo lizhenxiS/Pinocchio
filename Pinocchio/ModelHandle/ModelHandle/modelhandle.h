@@ -75,7 +75,8 @@ private slots:
 	void slotSmoothBox();
 	void slotStressBox();
 
-	void slotOKbutton();
+	void slotSkeletonChooseBox();
+	void slotBVHChange();
 };
 
 #endif // MODELHANDLE_H

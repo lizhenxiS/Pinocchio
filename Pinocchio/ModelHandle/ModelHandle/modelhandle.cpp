@@ -3,6 +3,7 @@
 #include "modelhandle.h"
 #include <QtWidgets\qmessagebox.h>
 #include <QtWidgets\qfiledialog.h>
+#include "GenerateTool.h"
 
 extern float angle;
 extern int rotateX;
@@ -15,7 +16,7 @@ extern bool changeFromMap;
 extern bool SmoothState;
 extern bool StressState;
 
-
+#define PI 3.1415926
 
 ModelHandle::ModelHandle(QWidget *parent)
 	: QWidget(parent)
@@ -125,7 +126,11 @@ void ModelHandle::disableSlider()
 	ui.smoothBox->setEnabled(false);
 	ui.stressBox->setEnabled(false);
 
-	ui.OkPreModelButton->setEnabled(false);
+	ui.SkeletonChooseBox->setEnabled(false);
+	ui.curSkeletonAlpha->setEnabled(false);
+	ui.curSkeletonBeta->setEnabled(false);
+	ui.curSkeletonLength->setEnabled(false);
+	ui.SkeletonChangeButton->setEnabled(false);
 }
 
 void ModelHandle::enableSlider()
@@ -179,7 +184,11 @@ void ModelHandle::enableSlider()
 	ui.smoothBox->setEnabled(true);
 	ui.stressBox->setEnabled(true);
 
-	ui.OkPreModelButton->setEnabled(true);
+	ui.SkeletonChooseBox->setEnabled(true);
+	ui.curSkeletonAlpha->setEnabled(true);
+	ui.curSkeletonBeta->setEnabled(true);
+	ui.curSkeletonLength->setEnabled(true);
+	ui.SkeletonChangeButton->setEnabled(true);
 }
 
 void ModelHandle::initSlider()
@@ -228,6 +237,20 @@ void ModelHandle::initSlider()
 	ui.skeleton_box->setChecked(true);
 	ui.mesh_box->setChecked(true);
 	ui.coord_box->setChecked(true);
+
+	QStringList skeletonNames;
+	skeletonNames << "skeleton1"
+		<< "skeleton2" << "skeleton3"
+		<< "skeleton4" << "skeleton5"
+		<< "skeleton6" << "skeleton7"
+		<< "skeleton8" << "skeleton9"
+		<< "skeleton10" << "skeleton11"
+		<< "skeleton12" << "skeleton13"
+		<< "skeleton14"
+		<< "skeleton15" << "skeleton16"
+		<< "skeleton17";
+
+	ui.SkeletonChooseBox->addItems(skeletonNames);
 }
 
 void ModelHandle::setSlider()
@@ -327,15 +350,33 @@ void ModelHandle::setConnect()
 	connect(ui.smoothBox, SIGNAL(stateChanged(int)), this, SLOT(slotSmoothBox()));
 	connect(ui.stressBox, SIGNAL(stateChanged(int)), this, SLOT(slotStressBox()));
 
-	connect(ui.OkPreModelButton, SIGNAL(clicked()), this, SLOT(slotOKbutton()));
 	connect(ui.energyButton, SIGNAL(clicked()), this, SLOT(slotEnergyButton()));
+	connect(ui.SkeletonChooseBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSkeletonChooseBox()));
+	connect(ui.SkeletonChangeButton, SIGNAL(clicked()), this, SLOT(slotBVHChange()));
 }
 
-void ModelHandle::slotOKbutton()
+
+void ModelHandle::slotSkeletonChooseBox()
 {
-	ui.showWidget->model->changeSkeletonFromMap();
+	int curSkeleton = ui.SkeletonChooseBox->currentIndex();
+	double curSkeletonAlpha = ui.showWidget->model->BvhData->data[curSkeleton].angle_alpha;
+	double curSkeletonBeta = ui.showWidget->model->BvhData->data[curSkeleton].angle_beta;
+	double curSkeletonLen = ui.showWidget->model->BvhData->data[curSkeleton].length;
+	ui.curSkeletonAlpha->setText(QString::fromStdString(toString(curSkeletonAlpha)));
+	ui.curSkeletonBeta->setText(QString::fromStdString(toString(curSkeletonBeta)));
+	ui.curSkeletonLength->setText(QString::fromStdString(toString(curSkeletonLen)));
 }
 
+void ModelHandle::slotBVHChange()
+{
+	double bone = ui.SkeletonChooseBox->currentIndex() + 1;
+	double newSkeletonAlpha = ui.curSkeletonAlpha->text().toDouble();
+	double newSkeletonBeta = ui.curSkeletonBeta->text().toDouble();
+	double newSkeletonLen = ui.curSkeletonLength->text().toDouble();
+
+	ui.showWidget->model->changeSkeleton(bone, newSkeletonAlpha, newSkeletonBeta, newSkeletonLen);
+	ui.showWidget->model->BvhData->printData();
+}
 
 void ModelHandle::slotObj_out()
 {
