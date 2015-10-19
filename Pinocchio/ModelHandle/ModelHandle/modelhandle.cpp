@@ -234,6 +234,10 @@ void ModelHandle::initSlider()
 	ui.cst_16->setValue(0);
 	ui.cst_17->setValue(0);
 
+}
+
+void ModelHandle::initBox()
+{
 	ui.skeleton_box->setChecked(true);
 	ui.mesh_box->setChecked(true);
 	ui.coord_box->setChecked(true);
@@ -359,12 +363,12 @@ void ModelHandle::setConnect()
 void ModelHandle::slotSkeletonChooseBox()
 {
 	int curSkeleton = ui.SkeletonChooseBox->currentIndex();
-	double curSkeletonAlpha = ui.showWidget->model->BvhData->data[curSkeleton].angle_alpha;
-	double curSkeletonBeta = ui.showWidget->model->BvhData->data[curSkeleton].angle_beta;
-	double curSkeletonLen = ui.showWidget->model->BvhData->data[curSkeleton].length;
-	ui.curSkeletonAlpha->setText(QString::fromStdString(toString(curSkeletonAlpha)));
-	ui.curSkeletonBeta->setText(QString::fromStdString(toString(curSkeletonBeta)));
-	ui.curSkeletonLength->setText(QString::fromStdString(toString(curSkeletonLen)));
+	//double curSkeletonAlpha = ui.showWidget->model->BvhData->data[curSkeleton].angle_alpha;
+	//double curSkeletonBeta = ui.showWidget->model->BvhData->data[curSkeleton].angle_beta;
+	//double curSkeletonLen = ui.showWidget->model->BvhData->data[curSkeleton].length;
+	//ui.curSkeletonAlpha->setText(QString::fromStdString(toString(curSkeletonAlpha)));
+	//ui.curSkeletonBeta->setText(QString::fromStdString(toString(curSkeletonBeta)));
+	//ui.curSkeletonLength->setText(QString::fromStdString(toString(curSkeletonLen)));
 }
 
 void ModelHandle::slotBVHChange()
@@ -375,7 +379,7 @@ void ModelHandle::slotBVHChange()
 	double newSkeletonLen = ui.curSkeletonLength->text().toDouble();
 
 	ui.showWidget->model->changeSkeleton(bone, newSkeletonAlpha, newSkeletonBeta, newSkeletonLen);
-	ui.showWidget->model->BvhData->printData();
+	//ui.showWidget->model->BvhData->printData();
 }
 
 void ModelHandle::slotObj_out()
@@ -656,5 +660,6 @@ void ModelHandle::slotReadButton()
 
 	enableSlider();
 	initSlider();
+	initBox();
 	ui.light->setVisible(false);
 }

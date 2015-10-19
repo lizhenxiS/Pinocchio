@@ -18,6 +18,7 @@ private:
 	void disableSlider();
 	void enableSlider();
 	void initSlider();
+	void initBox();
 	void setSlider();
 	void setConnect();
 

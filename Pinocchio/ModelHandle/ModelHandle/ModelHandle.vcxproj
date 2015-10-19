@@ -109,6 +109,7 @@
     <ClCompile Include="skeleton.cpp" />
     <ClCompile Include="SkeletonModel.cpp" />
     <ClCompile Include="sparse_matrix.cpp" />
+    <ClCompile Include="StandardModel.cpp" />
     <ClCompile Include="taucs_matrix.cpp" />
     <ClCompile Include="taucs_solver.cpp" />
     <ClCompile Include="taucs_util.cpp" />
@@ -164,7 +165,9 @@
     <ClInclude Include="quaddisttree.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="skeleton.h" />
+    <ClInclude Include="SkeletonNode.h" />
     <ClInclude Include="sparse_matrix.h" />
+    <ClInclude Include="StandardModel.h" />
     <ClInclude Include="taucs_matrix.h" />
     <ClInclude Include="taucs_solver.h" />
     <ClInclude Include="taucs_util.h" />

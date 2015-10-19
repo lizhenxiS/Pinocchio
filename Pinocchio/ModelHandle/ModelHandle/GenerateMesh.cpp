@@ -9,6 +9,7 @@
 #include "taucs_matrix.h"
 #include "taucs_solver.h"
 #include <time.h>
+#include "StandardModel.h"
 
 using namespace std;
 
@@ -97,8 +98,8 @@ GenerateMesh::GenerateMesh(const string& file)
 	Stress_size = 0;
 	cout << m->edges.size() << " ___half" << endl;
 	cout << "Generate Mesh Success !" << embedding.size() << endl;
-	this->BvhData = new BVHData(embedding, preIndex);
-	this->BvhData->printData();
+	//this->BvhData = new BVHData(embedding, preIndex);
+	//this->BvhData->printData();
 }
 
 void PutStringToInt(string s, int *num)
@@ -267,23 +268,28 @@ void GenerateMesh::process()
 
 	countBone = SMdata.embedding.size();
 
-	preIndex = new int[countBone];
-	aftIndex = new int[countBone];
-
-	//前续后续初始化
-	preIndex[0] = -1;
-	for (int i = 0; i < SMdata.embedding.size(); i++)
-	{
-		aftIndex[i] = -1;
-	}
+	skeletonNodeInformation = new SkeletonNode[countBone];
 
 	for (int y = 1; y < SMdata.embedding.size(); y++)
 	{
-		//y为中间骨，given.fPrev()[y]为前续骨
-		preIndex[y] = given.fPrev()[y];
-		//preIndex[y]为中间骨，y为后续骨
-		aftIndex[preIndex[y]] = y;
+		//y为末端点，given.fPrev()[y]为前续端点
+		skeletonNodeInformation[y].parentIndex = given.fPrev()[y];
+		skeletonNodeInformation[given.fPrev()[y]].childrenIndex.push_back(y);
 	}
+
+	//SELFDEBUG;
+
+	//for (int i = 0; i < countBone; i++)
+	//{
+	//	vector<int> tempp = getAfterSkeletonIndex(skeletonNodeInformation ,i);
+	//	for (int j = 0; j < tempp.size(); j++)
+	//	{
+	//		cout << tempp[j] << " ";
+	//	}
+	//	cout << endl;
+	//}
+
+	//SELFDEBUG;
 
 	//骨骼模型获取
 	for (int y = 0; y < SMdata.embedding.size(); y++)
@@ -353,7 +359,7 @@ void GenerateMesh::CountGrowCustom()
 
 				for (int k = 0; k < 3; k++)
 				{
-					temp[k] = embedding[HEAD][k] + ((m_delta[k] - embedding[HEAD][k]) * getDistance(embedding[HEAD], embedding[preIndex[HEAD]])) / getDistance(m_delta, embedding[HEAD]) - m_delta[k];
+					temp[k] = embedding[HEAD][k] + ((m_delta[k] - embedding[HEAD][k]) * getDistance(embedding[HEAD], embedding[skeletonNodeInformation[HEAD].parentIndex])) / getDistance(m_delta, embedding[HEAD]) - m_delta[k];
 				}
 			}
 			else
@@ -365,18 +371,18 @@ void GenerateMesh::CountGrowCustom()
 				m_delta[2] = m->vertices[i].pos[2] + delta_skeleton[i][2];
 
 				//骨骼上“投影点”
-				Vector3 projVertice = proj(embedding[preIndex[j]], embedding[j], m_delta);
-				double d = getDistance(embedding[preIndex[j]], embedding[j]) * 2 / 3;
+				Vector3 projVertice = proj(embedding[skeletonNodeInformation[j].parentIndex], embedding[j], m_delta);
+				double d = getDistance(embedding[skeletonNodeInformation[j].parentIndex], embedding[j]) * 2 / 3;
 
 				//当投影落在骨骼外时，将近端点作为投影点
-				if (!isInLine(projVertice, embedding[preIndex[j]], embedding[j]))
+				if (!isInLine(projVertice, embedding[skeletonNodeInformation[j].parentIndex], embedding[j]))
 				{
-					if (getDistance(m_delta, embedding[j]) < getDistance(m_delta, embedding[preIndex[j]]))
+					if (getDistance(m_delta, embedding[j]) < getDistance(m_delta, embedding[skeletonNodeInformation[j].parentIndex]))
 					{
 						projVertice = embedding[j];
 					}
 					else
-						projVertice = embedding[preIndex[j]];
+						projVertice = embedding[skeletonNodeInformation[j].parentIndex];
 				}
 
 				for (int k = 0; k < 3; k++)
@@ -493,8 +499,14 @@ void dis_CG()
 }
 
 
-//骨骼变化后模型映射变化处理
-void GenerateMesh::ChangeFromSkeleton()
+//骨骼角度变化后模型映射变化处理
+void GenerateMesh::ChangeFromSkeletonRotation()
+{
+
+}
+
+//骨骼长度变化后模型映射变化处理
+void GenerateMesh::extendMesh()
 {
 	////BVHData 更新
 	//delete BvhData;
@@ -524,16 +536,16 @@ void GenerateMesh::ChangeFromSkeleton()
 		//假定 bone_a 为起点  bone_b 为前点
 		for (int j = 0; j < weightSize; j++)
 		{
-				//第j+1根骨骼
-				projTemp = proj(SMdata.embedding[preIndex[j + 1]], SMdata.embedding[j + 1], copy_m->vertices[i].pos);
-				RjTemp = Rj(SMdata.embedding[preIndex[j + 1]], SMdata.embedding[j + 1], embedding[preIndex[j + 1]], embedding[j + 1]);
-				SBjTemp = SBj(SMdata.embedding[preIndex[j + 1]], SMdata.embedding[j + 1], embedding[preIndex[j + 1]], embedding[j + 1]);
-				EBjViTemp = EBjVi(SMdata.embedding[preIndex[j + 1]], SMdata.embedding[j + 1], copy_m->vertices[i].pos);
+			//第j+1根骨骼
+			projTemp = proj(CurEmbedding[skeletonNodeInformation[j + 1].parentIndex], CurEmbedding[j + 1], copy_m->vertices[i].pos);
+			RjTemp = Rj(CurEmbedding[skeletonNodeInformation[j + 1].parentIndex], CurEmbedding[j + 1], embedding[skeletonNodeInformation[j + 1].parentIndex], embedding[j + 1]);
+			SBjTemp = SBj(CurEmbedding[skeletonNodeInformation[j + 1].parentIndex], CurEmbedding[j + 1], embedding[skeletonNodeInformation[j + 1].parentIndex], embedding[j + 1]);
+			EBjViTemp = EBjVi(CurEmbedding[skeletonNodeInformation[j + 1].parentIndex], CurEmbedding[j + 1], copy_m->vertices[i].pos);
 				weight = (0.5 + SMdata.attachment->getWeights(i)[j] * 10000.0) / 10000.0;
 
 				for (int k = 0; k < 3; k++)
 				{
-					temp[k] += weight*(embedding[preIndex[j + 1]][k] + (copy_m->vertices[i].pos[k] - SMdata.embedding[preIndex[j + 1]][k])
+					temp[k] += weight*(embedding[skeletonNodeInformation[j + 1].parentIndex][k] + (copy_m->vertices[i].pos[k] - CurEmbedding[skeletonNodeInformation[j + 1].parentIndex][k])
 						+ (copy_m->vertices[i].pos[k] - projTemp[k])*(RjTemp - 1)
 						+ EBjViTemp * SBjTemp[k]);
 				}
@@ -546,6 +558,115 @@ void GenerateMesh::ChangeFromSkeleton()
 }
 
 
+//转动骨骼
+void GenerateMesh::rotateSkeleton(const int bone, double alpha, double beta)
+{
+	
+	//BvhData->data[bone].angle_alpha = alpha;
+	//BvhData->data[bone].angle_beta = beta;
+	////角度转换为弧度
+	//alpha = alpha * PI / 180;
+	//beta = beta * PI / 180;
+	//double length = BvhData->data[bone].length;
+
+	////temp 改变目标骨骼末端，获得改变向量 将关联骨骼均用改变向量处理
+	//int preBone = preIndex[bone];
+	////Vector3 oldPos = embedding[bone];	/*此处略去，需用默认位置代表改变前的原始位置进行计算*/
+	//Vector3 prePos = embedding[preBone];
+	//changedIndex[bone] = true;
+
+	//int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
+	//for (int i = 0; i < (countBone - 2); i++)
+	//{
+	//	beMoved[i] = 0;
+	//}
+	//int afterList = aftIndex[bone];
+	//int beMoved_index = 0;
+	//while (afterList != -1)
+	//{
+	//	beMoved[beMoved_index] = afterList;
+	//	afterList = aftIndex[afterList];
+	//	beMoved_index++;
+	//}
+
+	//RelayAxes reAxes = this->BvhData->defaultSkeleton[bone - 1].defaultAxes;
+	//Vector3 targetPos;
+	//double skeVector[4];
+	//double tempResult1[4];
+	//double tempResult2[4];
+	//double tempInX[16];
+	//double tempInY[16];
+	//double tempInZ[16];
+
+	//switch (reAxes)
+	//{
+	//case Axes_X:
+	//	skeVector[0] = length;
+	//	skeVector[1] = 0;
+	//	skeVector[2] = 0;
+	//	skeVector[3] = 0;
+	//	rotateInZ(beta, tempInZ);
+	//	rotateInY(alpha, tempInY);
+	//	lineRotate(skeVector, tempInZ, tempResult1);
+	//	lineRotate(tempResult1, tempInY, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//case Axes_Y:
+	//	skeVector[0] = 0;
+	//	skeVector[1] = length;
+	//	skeVector[2] = 0;
+	//	skeVector[3] = 0;
+	//	rotateInX(beta, tempInX);
+	//	rotateInZ(alpha, tempInZ);
+	//	lineRotate(skeVector, tempInX, tempResult1);
+	//	lineRotate(tempResult1, tempInZ, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//case Axes_Z:
+	//	skeVector[0] = 0;
+	//	skeVector[1] = 0;
+	//	skeVector[2] = length;
+	//	skeVector[3] = 0;
+	//	rotateInX(alpha, tempInX);
+	//	rotateInY(beta, tempInY);
+	//	lineRotate(skeVector, tempInY, tempResult1);
+	//	lineRotate(tempResult1, tempInX, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//default:
+	//	break;
+	//}
+
+	//Vector3 oldPos = embedding[bone];
+	//Vector3 transformation = targetPos - oldPos;
+
+	//embedding[bone] = targetPos;
+	//for (int i = 0; i < beMoved_index; i++)
+	//{
+	//	int tempIndex = beMoved[i];
+
+	//	//此处对于每个被动关联骨骼都只处理一个端点，因为一个端点即代表该骨骼，剩余端点会由后续骨骼处理
+	//	embedding[tempIndex][0] = embedding[tempIndex][0] + transformation[0];
+	//	embedding[tempIndex][1] = embedding[tempIndex][1] + transformation[1];
+	//	embedding[tempIndex][2] = embedding[tempIndex][2] + transformation[2];
+	//}
+}
+
+//转动模型
+void GenerateMesh::rotateMesh()
+{
+	for (int i = 0; i < countBone - 1; i++)
+	{
+
+	}
+}
+
 //将骨骼直接转换为所选模板
 void GenerateMesh::changeSkeletonFromMap()
 {
@@ -554,7 +675,7 @@ void GenerateMesh::changeSkeletonFromMap()
 	for (int i = 1; i < countBone; i++)
 	{
 		double scale;
-		scale = getDistance(cg_girl[i], cg_girl[preIndex[i]]) / getDistance(SMdata.embedding[i], SMdata.embedding[preIndex[i]]);
+		scale = getDistance(cg_girl[i], cg_girl[skeletonNodeInformation[i].parentIndex]) / getDistance(SMdata.embedding[i], SMdata.embedding[skeletonNodeInformation[i].parentIndex]);
 		
 		changeSingleSkeleton(i, scale);
 
@@ -565,163 +686,191 @@ void GenerateMesh::changeSkeletonFromMap()
 //bone 为骨骼序数，从1开始
 void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta, double length)
 {
-	BvhData->data[bone].angle_alpha = alpha;
-	BvhData->data[bone].angle_beta = beta;
-	//角度转换为弧度
-	alpha = alpha * PI / 180;
-	beta = beta * PI / 180;
+	//cout << "\n show standard..." << endl;
+	StandardModel temp(SMdata, m, embedding, skeletonNodeInformation);
 
-	//temp 改变目标骨骼末端，获得改变向量 将关联骨骼均用改变向量处理
-	int preBone = preIndex[bone];
-	//Vector3 oldPos = embedding[bone];	/*此处略去，需用默认位置代表改变前的原始位置进行计算*/
-	Vector3 prePos = embedding[preBone];
-	changedIndex[bone] = true;
-
-	int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
-	for (int i = 0; i < (countBone - 2); i++)
+	for (int i = 0; i < countBone - 1; i++)
 	{
-		beMoved[i] = 0;
+		//if (i != 4)
+		//	continue;
+		temp.rotateSkeleton(i, embedding);
+		for (int j = 0; j < countBone; j++)
+		{
+			embedding[j] = temp.skeletonPoints[j];
+		}
+		temp.refreshMesh(embedding[i]);
 	}
-	int afterList = aftIndex[bone];
-	int beMoved_index = 0;
-	while (afterList != -1)
+	for (int i = 0; i < temp.meshVertices->vertices.size(); i++)
 	{
-		beMoved[beMoved_index] = afterList;
-		afterList = aftIndex[afterList];
-		beMoved_index++;
+		//cout << "old point:" << copy_m->vertices[i].pos;
+		//cout << "   new pos: " << temp.meshVertices->vertices[i].pos << endl;
+		copy_m->vertices[i].pos = temp.meshVertices->vertices[i].pos;
 	}
+	//SELFDEBUG;
+	//BvhData->data[bone].angle_alpha = alpha;
+	//BvhData->data[bone].angle_beta = beta;
+	////角度转换为弧度
+	//alpha = alpha * PI / 180;
+	//beta = beta * PI / 180;
 
-	RelayAxes reAxes = this->BvhData->defaultSkeleton[bone - 1].defaultAxes;
-	Vector3 targetPos;
-	double skeVector[4];
-	double tempResult1[4];
-	double tempResult2[4];
-	double tempInX[16];
-	double tempInY[16];
-	double tempInZ[16];
+	////temp 改变目标骨骼末端，获得改变向量 将关联骨骼均用改变向量处理
+	//int preBone = preIndex[bone];
+	////Vector3 oldPos = embedding[bone];	/*此处略去，需用默认位置代表改变前的原始位置进行计算*/
+	//Vector3 prePos = embedding[preBone];
+	//changedIndex[bone] = true;
 
-	switch (reAxes)
-	{
-	case Axes_X:
-		skeVector[0] = length;
-		skeVector[1] = 0;
-		skeVector[2] = 0;
-		skeVector[3] = 0;
-		rotateInZ(beta, tempInZ);
-		rotateInY(alpha, tempInY);
-		lineRotate(skeVector, tempInZ, tempResult1);
-		lineRotate(tempResult1, tempInY, tempResult2);
-		targetPos[0] = prePos[0] + tempResult2[0];
-		targetPos[1] = prePos[1] + tempResult2[1];
-		targetPos[2] = prePos[2] + tempResult2[2];
-		break;
-	case Axes_Y:
-		skeVector[0] = 0;
-		skeVector[1] = length;
-		skeVector[2] = 0;
-		skeVector[3] = 0;
-		rotateInX(beta, tempInX);
-		rotateInZ(alpha, tempInZ);
-		lineRotate(skeVector, tempInX, tempResult1);
-		lineRotate(tempResult1, tempInZ, tempResult2);
-		targetPos[0] = prePos[0] + tempResult2[0];
-		targetPos[1] = prePos[1] + tempResult2[1];
-		targetPos[2] = prePos[2] + tempResult2[2];
-		break;
-	case Axes_Z:
-		skeVector[0] = 0;
-		skeVector[1] = 0;
-		skeVector[2] = length;
-		skeVector[3] = 0;
-		rotateInX(alpha, tempInX);
-		rotateInY(beta, tempInY);
-		lineRotate(skeVector, tempInY, tempResult1);
-		lineRotate(tempResult1, tempInX, tempResult2);
-		targetPos[0] = prePos[0] + tempResult2[0];
-		targetPos[1] = prePos[1] + tempResult2[1];
-		targetPos[2] = prePos[2] + tempResult2[2];
-		break;
-	default:
-		break;
-	}
+	//int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
+	//for (int i = 0; i < (countBone - 2); i++)
+	//{
+	//	beMoved[i] = 0;
+	//}
+	//int afterList = aftIndex[bone];
+	//int beMoved_index = 0;
+	//while (afterList != -1)
+	//{
+	//	beMoved[beMoved_index] = afterList;
+	//	afterList = aftIndex[afterList];
+	//	beMoved_index++;
+	//}
 
-	Vector3 oldPos = embedding[bone];
-	Vector3 transformation = targetPos - oldPos;
+	//RelayAxes reAxes = this->BvhData->defaultSkeleton[bone - 1].defaultAxes;
+	//Vector3 targetPos;
+	//double skeVector[4];
+	//double tempResult1[4];
+	//double tempResult2[4];
+	//double tempInX[16];
+	//double tempInY[16];
+	//double tempInZ[16];
 
-	embedding[bone] = targetPos;
-	for (int i = 0; i < beMoved_index; i++)
-	{
-		int tempIndex = beMoved[i];
+	//switch (reAxes)
+	//{
+	//case Axes_X:
+	//	skeVector[0] = length;
+	//	skeVector[1] = 0;
+	//	skeVector[2] = 0;
+	//	skeVector[3] = 0;
+	//	rotateInZ(beta, tempInZ);
+	//	rotateInY(alpha, tempInY);
+	//	lineRotate(skeVector, tempInZ, tempResult1);
+	//	lineRotate(tempResult1, tempInY, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//case Axes_Y:
+	//	skeVector[0] = 0;
+	//	skeVector[1] = length;
+	//	skeVector[2] = 0;
+	//	skeVector[3] = 0;
+	//	rotateInX(beta, tempInX);
+	//	rotateInZ(alpha, tempInZ);
+	//	lineRotate(skeVector, tempInX, tempResult1);
+	//	lineRotate(tempResult1, tempInZ, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//case Axes_Z:
+	//	skeVector[0] = 0;
+	//	skeVector[1] = 0;
+	//	skeVector[2] = length;
+	//	skeVector[3] = 0;
+	//	rotateInX(alpha, tempInX);
+	//	rotateInY(beta, tempInY);
+	//	lineRotate(skeVector, tempInY, tempResult1);
+	//	lineRotate(tempResult1, tempInX, tempResult2);
+	//	targetPos[0] = prePos[0] + tempResult2[0];
+	//	targetPos[1] = prePos[1] + tempResult2[1];
+	//	targetPos[2] = prePos[2] + tempResult2[2];
+	//	break;
+	//default:
+	//	break;
+	//}
 
-		//此处对于每个被动关联骨骼都只处理一个端点，因为一个端点即代表该骨骼，剩余端点会由后续骨骼处理
-		embedding[tempIndex][0] = embedding[tempIndex][0] + transformation[0];
-		embedding[tempIndex][1] = embedding[tempIndex][1] + transformation[1];
-		embedding[tempIndex][2] = embedding[tempIndex][2] + transformation[2];
-	}
+	//Vector3 oldPos = embedding[bone];
+	//Vector3 transformation = targetPos - oldPos;
 
-	cout << "\nCUR CHANGE SKELETON " << bone << endl
-		<< "PRE POINT " << preBone << endl
-		<< "NEW ANGLES " << BvhData->data[bone].angle_alpha << " " << BvhData->data[bone].angle_beta << endl
-		<< "OLD POS " << oldPos << endl
-		<< "NEW POS " << targetPos << endl;
+	//CurEmbedding[bone] = targetPos;
+	//embedding[bone] = targetPos;
+	//for (int i = 0; i < beMoved_index; i++)
+	//{
+	//	int tempIndex = beMoved[i];
 
-	ChangeFromSkeleton();
+	//	//此处对于每个被动关联骨骼都只处理一个端点，因为一个端点即代表该骨骼，剩余端点会由后续骨骼处理
+	//	CurEmbedding[tempIndex][0] = CurEmbedding[tempIndex][0] + transformation[0];
+	//	CurEmbedding[tempIndex][1] = CurEmbedding[tempIndex][1] + transformation[1];
+	//	CurEmbedding[tempIndex][2] = CurEmbedding[tempIndex][2] + transformation[2];
+	//	embedding[tempIndex][0] = CurEmbedding[tempIndex][0];
+	//	embedding[tempIndex][1] = CurEmbedding[tempIndex][1];
+	//	embedding[tempIndex][2] = CurEmbedding[tempIndex][2];
+	//}
 
-	CountGrowCustom();
+	//cout << "\nCUR CHANGE SKELETON " << bone << endl
+	//	<< "PRE POINT " << preBone << endl
+	//	<< "NEW ANGLES " << BvhData->data[bone].angle_alpha << " " << BvhData->data[bone].angle_beta << endl
+	//	<< "OLD POS " << oldPos << endl
+	//	<< "NEW POS " << targetPos << endl;
+
+	//extendMesh();
+	//CountGrowCustom();
 }
 
+
 //同步改变单一骨骼
-void GenerateMesh::changeSingleSkeleton(const int bone, const double scale)
+void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 {
 	if (((scale - 1) < 0.05) && ((scale - 1) > 0.05))
 	{
-		changedIndex[bone] = false;
+		changedIndex[boneNode] = false;
 	}
 	else
-		changedIndex[bone] = true;
+		changedIndex[boneNode] = true;
 
-	int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
-	for (int i = 0; i < (countBone - 2); i++)
-	{
-		beMoved[i] = 0;
-	}
-	int afterList = aftIndex[bone];
-	int beMoved_index = 0;
-	while (afterList != -1)
-	{
-		beMoved[beMoved_index] = afterList;
-		afterList = aftIndex[afterList];
-		beMoved_index++;
-	}
+	vector<int> concernNodes = getAfterSkeletonIndex(skeletonNodeInformation, boneNode);
+
+	//int* beMoved = new int[countBone - 2];	//后续骨骼是否被牵动记录数组
+	//for (int i = 0; i < (countBone - 2); i++)
+	//{
+	//	beMoved[i] = 0;
+	//}
+	//int afterList = aftIndex[boneNode];
+	//int beMoved_index = 0;
+	//while (afterList != -1)
+	//{
+	//	beMoved[beMoved_index] = afterList;
+	//	afterList = aftIndex[afterList];
+	//	beMoved_index++;
+	//}
+
 
 	//当前骨骼（不一定为初始骨骼）变化前位置记录
-	double Temp_embed_X = embedding[bone][0];
-	double Temp_embed_Y = embedding[bone][1];
-	double Temp_embed_Z = embedding[bone][2];
+	double Temp_embed_X = embedding[boneNode][0];
+	double Temp_embed_Y = embedding[boneNode][1];
+	double Temp_embed_Z = embedding[boneNode][2];
 
-	embedding[bone][0] =
-		scale * (SMdata.embedding[bone][0] - SMdata.embedding[preIndex[bone]][0])
-		+ embedding[preIndex[bone]][0];
-	embedding[bone][1] =
-		scale * (SMdata.embedding[bone][1] - SMdata.embedding[preIndex[bone]][1])
-		+ embedding[preIndex[bone]][1];
-	embedding[bone][2] =
-		scale * (SMdata.embedding[bone][2] - SMdata.embedding[preIndex[bone]][2])
-		+ embedding[preIndex[bone]][2];
+	embedding[boneNode][0] =
+		scale * (CurEmbedding[boneNode][0] - CurEmbedding[skeletonNodeInformation[boneNode].parentIndex][0])
+		+ embedding[skeletonNodeInformation[boneNode].parentIndex][0];
+	embedding[boneNode][1] =
+		scale * (CurEmbedding[boneNode][1] - CurEmbedding[skeletonNodeInformation[boneNode].parentIndex][1])
+		+ embedding[skeletonNodeInformation[boneNode].parentIndex][1];
+	embedding[boneNode][2] =
+		scale * (CurEmbedding[boneNode][2] - CurEmbedding[skeletonNodeInformation[boneNode].parentIndex][2])
+		+ embedding[skeletonNodeInformation[boneNode].parentIndex][2];
 
 
 
-	for (int i = 0; i < beMoved_index; i++)
+	for (int i = 0; i < concernNodes.size(); i++)
 	{
-		int tempIndex = beMoved[i];
+		int tempIndex = concernNodes[i];
 
 		//此处对于每个被动关联骨骼都只处理一个端点，因为一个端点即代表该骨骼，剩余端点会由后续骨骼处理
-		embedding[tempIndex][0] = embedding[tempIndex][0] + embedding[bone][0] - Temp_embed_X;
-		embedding[tempIndex][1] = embedding[tempIndex][1] + embedding[bone][1] - Temp_embed_Y;
-		embedding[tempIndex][2] = embedding[tempIndex][2] + embedding[bone][2] - Temp_embed_Z;
+		embedding[tempIndex][0] = embedding[tempIndex][0] + embedding[boneNode][0] - Temp_embed_X;
+		embedding[tempIndex][1] = embedding[tempIndex][1] + embedding[boneNode][1] - Temp_embed_Y;
+		embedding[tempIndex][2] = embedding[tempIndex][2] + embedding[boneNode][2] - Temp_embed_Z;
 	}
 
-	ChangeFromSkeleton();
+	extendMesh();
 
 	CountGrowCustom();
 }
@@ -733,9 +882,9 @@ void GenerateMesh::drawSkeleton()
 	for (int i = 1; i < countBone; i++)
 	{
 		if (changedIndex[i])
-			drawLine(embedding[i], embedding[preIndex[i]], color_Tran, thin);
+			drawLine(embedding[i], embedding[skeletonNodeInformation[i].parentIndex], color_Tran, thin);
 		else
-			drawLine(embedding[i], embedding[preIndex[i]], color_Skele, thin);
+			drawLine(embedding[i], embedding[skeletonNodeInformation[i].parentIndex], color_Skele, thin);
 	}
 }
 
@@ -912,7 +1061,7 @@ void GenerateMesh::FindVertex(double x, double y)
 						for (int j = 0; j < countBone - 1; j++)
 						{
 							//标记的每一个点在每一个骨骼上的投影距离与已有最值进行比较
-							double temp = getDistance(proj(SMdata.embedding[preIndex[j + 1]], SMdata.embedding[j + 1], copy_m->vertices[i].pos), copy_m->vertices[i].pos);
+							double temp = getDistance(proj(SMdata.embedding[skeletonNodeInformation[j + 1].parentIndex], SMdata.embedding[j + 1], copy_m->vertices[i].pos), copy_m->vertices[i].pos);
 							if (temp > temp_distance[2 * j + 1])
 								temp_distance[2 * j + 1] = temp;
 							if (temp < temp_distance[2 * j])
@@ -978,7 +1127,7 @@ void GenerateMesh::FindVertex(double x, double y)
 
 #define SE_STRESS 0.5
 //总能量计算处理
-void GenerateMesh::CountingEnergy()
+void GenerateMesh::CountingEnergy() 
 {
 	int vertices_size = m->vertices.size();
 	int row = vertices_size * (2 + countBone - 2 + 1) + Stress_size * (countBone - 1);	//countBone-2为除去头部的骨骼数
@@ -1188,16 +1337,16 @@ void GenerateMesh::CountingEnergy()
 						continue;
 
 					line++;
-					double d_vi = getDistance(proj(SMdata.embedding[preIndex[bone + 1]], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos), copy_m->vertices[stress_it->first].pos);
+					double d_vi = getDistance(proj(SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos), copy_m->vertices[stress_it->first].pos);
 					double d_min = stressArea[verticesToStress[stress_it->first] - 1][2 * bone];
 					double d_max = stressArea[verticesToStress[stress_it->first] - 1][2 * bone + 1];
 
-					double temp_vi_Bi = embedding[preIndex[bone + 1]][k]
-						+ (proj(SMdata.embedding[preIndex[bone + 1]], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos)[k] - SMdata.embedding[preIndex[bone + 1]][k]) / (SMdata.embedding[bone + 1][k] - SMdata.embedding[preIndex[bone + 1]][k])
-						* (embedding[bone + 1][k] - embedding[preIndex[bone + 1]][k])
-						+ getDistance(embedding[preIndex[bone + 1]], embedding[bone + 1]) / getDistance(SMdata.embedding[preIndex[bone + 1]], SMdata.embedding[bone + 1])
+					double temp_vi_Bi = embedding[skeletonNodeInformation[bone + 1].parentIndex][k]
+						+ (proj(SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos)[k] - SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex][k]) / (SMdata.embedding[bone + 1][k] - SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex][k])
+						* (embedding[bone + 1][k] - embedding[skeletonNodeInformation[bone + 1].parentIndex][k])
+						+ getDistance(embedding[skeletonNodeInformation[bone + 1].parentIndex], embedding[bone + 1]) / getDistance(SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex], SMdata.embedding[bone + 1])
 						* (SE_STRESS * (d_vi - d_min) / (d_max - d_min) + 1)
-						* (copy_m->vertices[stress_it->first].pos[k] - proj(SMdata.embedding[preIndex[bone + 1]], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos)[k]);
+						* (copy_m->vertices[stress_it->first].pos[k] - proj(SMdata.embedding[skeletonNodeInformation[bone + 1].parentIndex], SMdata.embedding[bone + 1], copy_m->vertices[stress_it->first].pos)[k]);
 
 					//if (SMdata.attachment->getWeights(stress_it->first)[bone] > 0.5 && temp_vi_Bi <= 0)
 					//{

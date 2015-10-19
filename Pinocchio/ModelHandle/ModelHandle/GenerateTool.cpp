@@ -8,7 +8,45 @@
 
 #define PI 3.1415926
 
-//计算直线绕某个轴旋转所得矩阵 4x1 4x4 4x1
+//获得两个vector3 的叉乘
+Vector3 getCrossProduct(Vector3 a, Vector3 b)
+{
+	return Vector3(a[1] * b[2] - a[2] * b[1],
+		a[2] * b[0] - a[0] * b[2],
+		a[0] * b[1] - a[1] * b[0]);
+}
+
+//计算某个骨骼点牵连的所有后续骨骼点下标
+vector<int> getAfterSkeletonIndex(SkeletonNode* skeletonInformation, int boneNode)
+{
+	vector<int> result;
+	for (int i = 0; i < skeletonInformation[boneNode].childrenIndex.size(); i++)
+	{
+		int temp = skeletonInformation[boneNode].childrenIndex[i];
+		result.push_back(temp);
+		if (skeletonInformation[temp].childrenIndex.size() != 0)
+		{
+			vector<int> childTemp = getAfterSkeletonIndex(skeletonInformation, temp);
+			for (int j = 0; j < childTemp.size(); j++)
+			{
+				result.push_back(childTemp[j]);
+			}
+		}
+	}
+
+	return result;
+}
+
+//计算直线绕某个轴旋转所得矩阵 4x1 16x1 4x1
+Vector3 lineRotate(Vector3 lineVector, double* rotateVector)
+{
+	double line[4] = { lineVector[0], lineVector[1], lineVector[2], 0 };
+	double result[4];
+	lineRotate(line, rotateVector, result);
+	return Vector3(result[0], result[1], result[2]);
+}
+
+//计算直线绕某个轴旋转所得矩阵 4x1 16x1 4x1
 void lineRotate(double* lineVector, double* rotateVector, double* resultVector)
 {
 	resultVector[0] =
@@ -45,7 +83,195 @@ void lineRotate(double* lineVector, double* rotateVector, double* resultVector)
 	//	<< resultVector[3] << " " << endl;
 }
 
-//计算X轴旋转矩阵
+//计算直线根据旋转矩阵获得旋转结果	直线起点pa 3x1 直线末端点pb 3x1 旋转矩阵 16x1 【旋转骨骼需要：pa保持不变】
+Vector3 lineRotate(Vector3 pa, Vector3 pb, double* rotateVector)
+{
+	//cout << "before linerotate :" << getDistance(pa, pb) << endl; 
+	double lineVector[4] = {
+		pb[0] - pa[0],
+		pb[1] - pa[1],
+		pb[2] - pa[2],
+		0
+	};
+	double resultVector[4];
+	resultVector[0] =
+		rotateVector[0] * lineVector[0]
+		+ rotateVector[1] * lineVector[1]
+		+ rotateVector[2] * lineVector[2]
+		+ rotateVector[3] * lineVector[3];
+	resultVector[1] =
+		rotateVector[4] * lineVector[0]
+		+ rotateVector[5] * lineVector[1]
+		+ rotateVector[6] * lineVector[2]
+		+ rotateVector[7] * lineVector[3];
+	resultVector[2] =
+		rotateVector[8] * lineVector[0]
+		+ rotateVector[9] * lineVector[1]
+		+ rotateVector[10] * lineVector[2]
+		+ rotateVector[11] * lineVector[3];
+	resultVector[3] =
+		rotateVector[12] * lineVector[0]
+		+ rotateVector[13] * lineVector[1]
+		+ rotateVector[14] * lineVector[2]
+		+ rotateVector[15] * lineVector[3];
+
+	Vector3 resultPoint;
+	resultPoint[0] = pa[0] + resultVector[0];
+	resultPoint[1] = pa[1] + resultVector[1];
+	resultPoint[2] = pa[2] + resultVector[2];
+
+	//cout << "after linerotate :" << getDistance(pa, resultPoint) << endl;
+	return resultPoint;
+}
+
+//计算点根据旋转矩阵获得结果【围绕原点、坐标轴旋转】
+Vector3 pointRotate(Vector3 point, double* rotateVector)
+{
+	Vector3 result;
+	result[0] = rotateVector[0] * point[0]
+		+ rotateVector[1] * point[1]
+		+ rotateVector[2] * point[2];
+	result[1] = rotateVector[4] * point[0]
+		+ rotateVector[5] * point[1]
+		+ rotateVector[6] * point[2];
+	result[2] = rotateVector[8] * point[0]
+		+ rotateVector[9] * point[1]
+		+ rotateVector[10] * point[2];
+	return result;
+}
+
+//计算点根据center点依据旋转矩阵获得结果 3x1 3x1 4x1
+Vector3 pointRotate(Vector3 center, Vector3 point, double* rotateVector)
+{
+	double lineVector[4] = {
+		point[0] - center[0],
+		point[1] - center[1],
+		point[2] - center[2],
+		0
+	};
+	double resultVector[4];
+	resultVector[0] =
+		rotateVector[0] * lineVector[0]
+		+ rotateVector[1] * lineVector[1]
+		+ rotateVector[2] * lineVector[2]
+		+ rotateVector[3] * lineVector[3];
+	resultVector[1] =
+		rotateVector[4] * lineVector[0]
+		+ rotateVector[5] * lineVector[1]
+		+ rotateVector[6] * lineVector[2]
+		+ rotateVector[7] * lineVector[3];
+	resultVector[2] =
+		rotateVector[8] * lineVector[0]
+		+ rotateVector[9] * lineVector[1]
+		+ rotateVector[10] * lineVector[2]
+		+ rotateVector[11] * lineVector[3];
+	resultVector[3] =
+		rotateVector[12] * lineVector[0]
+		+ rotateVector[13] * lineVector[1]
+		+ rotateVector[14] * lineVector[2]
+		+ rotateVector[15] * lineVector[3];
+
+	Vector3 resultPoint;
+	resultPoint[0] = center[0] + resultVector[0];
+	resultPoint[1] = center[1] + resultVector[1];
+	resultPoint[2] = center[2] + resultVector[2];
+
+	return resultPoint;
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 3x1 3x1
+double transInX(Vector3 origin, Vector3 later)
+{
+	double originV[4] = { origin[0], origin[1], origin[2], 0 };
+	double laterV[4] = { later[0], later[1], later[2], 0 };
+	return transInX(originV, laterV);
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInX(double* origin, double* later)
+{
+	double angle;
+
+	/*检查输入是否有解*/
+	if (!almostEqual(origin[0], later[0]))
+		cout << "两矩阵不能绕X轴旋转得到" << endl;
+
+	if (later[0] == 0
+		&& later[1] == 0
+		&& later[2] == 0)
+		return 0;
+
+	double sinangle = (origin[2] * later[1] - origin[1] * later[2]) / (later[1] * later[1] + later[2] * later[2]);
+	angle = asin(sinangle);
+	return angle;
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInY(Vector3 origin, Vector3 later)
+{
+	double originV[4] = { origin[0], origin[1], origin[2], 0 };
+	double laterV[4] = { later[0], later[1], later[2], 0 };
+	return transInY(originV, laterV);
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInY(double* origin, double* later)
+{
+	double angle;
+
+	/*检查输入是否有解*/
+	if (!almostEqual(origin[1], later[1]))
+		cout << "两矩阵不能绕Y轴旋转得到" << endl;
+
+	if (later[0] == 0
+		&& later[1] == 0
+		&& later[2] == 0)
+		return 0;
+
+	double sinangle = (origin[0] * later[2] - origin[2] * later[0]) / (later[0] * later[0] + later[2] * later[2]);
+	angle = asin(sinangle);
+	return angle;
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInZ(Vector3 origin, Vector3 later)
+{
+	double originV[4] = { origin[0], origin[1], origin[2], 0 };
+	double laterV[4] = { later[0], later[1], later[2], 0 };
+	return transInZ(originV, laterV);
+}
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInZ(double* origin, double* later)
+{
+	double angle;
+
+	/*检查输入是否有解*/
+	if (!almostEqual(origin[2], later[2]))
+		cout << "两矩阵不能绕Z轴旋转得到" << endl;
+
+	if (later[0] == 0
+		&& later[1] == 0
+		&& later[2] == 0)
+		return 0;
+
+	double sinangle = (origin[1] * later[0] - origin[0] * later[1]) / (later[0] * later[0] + later[1] * later[1]);
+	angle = asin(sinangle);
+	return angle;
+}
+
+//以0.05为临界值判断两个数是否近似相等
+bool almostEqual(double a, double b)
+{
+	if ((a >= b && a <= b + 0.05)
+		|| (a <= b && a >= b - 0.05))
+		return true;
+	else
+		return false;
+}
+
+
+//计算X轴旋转矩阵 16x1
 void rotateInX(double angle, double* result)
 {
 	result[0] = 1;

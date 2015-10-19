@@ -8,20 +8,62 @@
 #include "attachment.h"
 #include "pinocchioApi.h"
 #include <iostream>
+#include <conio.h>
+#include "SkeletonNode.h"
 
+#define SELFDEBUG cout << "enter"<< endl; getch();cout << "pass" << endl;
 
 double getDistance(Vector3 bone_a, Vector3 bone_b);
 
-//计算直线绕某个轴旋转所得矩阵 4x1 4x4 4x1
+//获得两个vector3 的叉乘
+Vector3 getCrossProduct(Vector3 a, Vector3 b);
+
+//以0.05为临界值判断两个数是否近似相等
+bool almostEqual(double a, double b);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 3x1 3x1
+double transInX(Vector3 origin, Vector3 later);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInX(double* origin, double* later);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInY(Vector3 origin, Vector3 later);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInY(double* origin, double* later);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInZ(Vector3 origin, Vector3 later);
+
+//反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 4x1 4x1
+double transInZ(double* origin, double* later);
+
+//计算某个骨骼点牵连的所有后续骨骼点下标
+vector<int> getAfterSkeletonIndex(SkeletonNode* skeletonInformation, int boneNode);
+
+//计算直线绕某个轴旋转所得矩阵 4x1 16x1 4x1
 void lineRotate(double* lineVector, double* rotateVector, double* resultVector);
 
-//计算X轴旋转矩阵
+//计算直线绕某个轴旋转所得矩阵 3x1 16x1 3x1
+Vector3 lineRotate(Vector3 lineVector, double* rotateVector);
+
+//计算直线根据旋转矩阵获得旋转结果	直线起点pa 3x1 直线末端点pb 3x1 旋转矩阵 16x1 【旋转骨骼需要：pa保持不变】
+Vector3 lineRotate(Vector3 pa, Vector3 pb, double* rotateVector);
+
+//计算点根据center点依据旋转矩阵获得结果 3x1 3x1 4x1
+Vector3 pointRotate(Vector3 center, Vector3 point, double* rotateVector);
+
+//计算点根据旋转矩阵获得结果【围绕原点、坐标轴旋转】
+Vector3 pointRotate(Vector3 point, double* rotateVector);
+
+//计算X轴旋转矩阵 16x1
 void rotateInX(double angle, double* result);
 
-//计算X轴旋转矩阵
+//计算Y轴旋转矩阵 16x1
 void rotateInY(double angle, double* result);
 
-//计算X轴旋转矩阵
+//计算Z轴旋转矩阵 16x1
 void rotateInZ(double angle, double* result);
 
 //判断两条射线ab, xy是否同向

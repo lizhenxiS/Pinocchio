@@ -11,7 +11,7 @@
 #include "MyVerticeMesh.h"
 #include <map>
 #include "BVHData.h"
-
+#include "SkeletonNode.h"
 
 struct ArgData
 {
@@ -38,6 +38,7 @@ struct changeBone
 	double scale;
 };
 
+
 /*
 模型实际绘制类
 */
@@ -53,14 +54,23 @@ public:
 	//数据获取
 	void process();
 
-	//骨骼变化后模型映射变化处理
-	void ChangeFromSkeleton();
+	//骨骼长度变化后模型映射变化处理
+	void extendMesh();
+
+	//骨骼角度变化后模型映射变化处理
+	void ChangeFromSkeletonRotation();
+
+	//转动骨骼
+	void rotateSkeleton(const int bone, double alpha, double beta);
+
+	//转动模型
+	void rotateMesh();
 
 	//任意自由度改变骨骼，并相对静止牵动关联骨骼
 	void changeSkeleton(const int bone, double alpha, double beta, double length);
 
 	//同步改变单一骨骼
-	void changeSingleSkeleton(const int bone, const double scale);
+	void changeSingleSkeleton(const int boneNode, const double scale);
 
 	//将骨骼直接转换为所选模板
 	void changeSkeletonFromMap();
@@ -98,8 +108,8 @@ public:
 	//寻找点击范围内点
 	void FindVertex(double x, double y);
 
-	//BVH数据
-	BVHData* BvhData;
+	////BVH数据
+	//BVHData* BvhData;
 
 	//更改比例
 	/********************************************/
@@ -113,12 +123,9 @@ private:
 	vector<changeBone> cBones;
 	//总骨骼数+1 = 18
 	int countBone;
-	//前续骨骼数组（p[0]无意义 -1）
-	int* preIndex;
-	//后续骨骼数组（all = 无意义 -1）
-	int* aftIndex;
 
-	
+	//骨骼信息
+	SkeletonNode* skeletonNodeInformation;
 
 	//各骨骼距离规范化energy
 	double* deltaEnergy;
@@ -139,6 +146,9 @@ private:
 	Mesh* m;
 	//表面顶点模型副本，保持原始模型(原始数据)
 	MyVerticeMesh* copy_m;
+	//标架模型(骨骼angle为标准angle + length由模型初始值确定)
+
+
 	//来自骨骼增长的模型增长
 	vector<Vector3> delta_skeleton;
 	//来自规范化的模型增长

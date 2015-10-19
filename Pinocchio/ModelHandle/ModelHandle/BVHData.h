@@ -11,7 +11,7 @@ public :
 	int pointCount;	//骨骼结点数
 	int skeletonCount;	//骨骼数
 
-	/*将骨骼末端点与骨骼连在一起考虑*/
+	/*将骨骼末端点与骨骼连在一起考虑 0-16*/
 	BVHPoint* data;
 
 	/*默认骨架模型*/

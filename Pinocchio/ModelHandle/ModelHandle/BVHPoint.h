@@ -8,7 +8,8 @@
 
 enum RelayAxes
 {
-	Axes_X, Axes_Y, Axes_Z
+	Axes_X, Axes_Y, Axes_Z,
+	OP_Axes_X, OP_Axes_Y, OP_Axes_Z
 };
 
 #endif	//_RELAYAXES__
