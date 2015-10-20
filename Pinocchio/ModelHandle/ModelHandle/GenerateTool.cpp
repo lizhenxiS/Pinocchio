@@ -16,6 +16,65 @@ Vector3 getCrossProduct(Vector3 a, Vector3 b)
 		a[0] * b[1] - a[1] * b[0]);
 }
 
+//将矩阵单位化
+Vector3 normalize(Vector3 vec)
+{
+	double sum = vec[0] * vec[0] + vec[1] * vec[1] + vec[2] * vec[2];
+	double sqrtSum = sqrt(sum);
+	return Vector3(vec[0] / sqrtSum, vec[1] / sqrtSum, vec[2] / sqrtSum);
+}
+
+//点绕旋转轴旋转一定角度后的结果 3x1 3x1 3x1 角度为0-180
+Vector3 rotateArroundLine(Vector3 point, Vector3 lineStart, Vector3 lineEnd, double angle)
+{
+	if (almostEqual(angle, 0))
+		return point;
+
+	double cosAngle = cos(angle * PI / 180);
+	double sinAngle = sin(angle * PI / 180);
+	Vector3 localPoint = point - lineStart;
+	Vector3 lineVector = lineEnd - lineStart;
+	lineVector = normalize(lineVector);
+	/*
+	结果来自 http://www.cnblogs.com/graphics/archive/2012/08/10/2627458.html [未单位化]
+	http://blog.csdn.net/tan625747/article/details/5523728
+	*/
+	double a = lineVector[0];
+	double b = lineVector[1];
+	double c = lineVector[2];
+	double aa = a * a;
+	double bb = b * b;
+	double cc = c * c;
+	double ab = a * b;
+	double bc = b * c;
+	double ac = a * c;
+	double localRotateVector[16] = {
+		aa + (1 - aa) * cosAngle, ab * (1 - cosAngle) + c * sinAngle, ac * (1 - cosAngle) - b * sinAngle, 0,
+		ab * (1 - cosAngle) - c * sinAngle, bb + (1 - bb) * cosAngle, bc * (1 - cosAngle) + a * sinAngle, 0,
+		ac * (1 - cosAngle) + b * sinAngle, bc * (1 - cosAngle) - a * sinAngle, cc + (1 - cc) * cosAngle, 0,
+		0, 0, 0, 1
+	};
+	Vector3 localResult = Vector3(
+		localRotateVector[0] * localPoint[0] + localRotateVector[1] * localPoint[1] + localRotateVector[2] * localPoint[2],
+		localRotateVector[4] * localPoint[0] + localRotateVector[5] * localPoint[1] + localRotateVector[6] * localPoint[2],
+		localRotateVector[8] * localPoint[0] + localRotateVector[9] * localPoint[1] + localRotateVector[10] * localPoint[2]
+		);
+	Vector3 result = localResult + lineStart;
+	//cout << "point       : " << point << endl;
+	//cout << "linestart   : " << lineStart << endl;
+	//cout << "lineend     : " << lineEnd << endl;
+	//cout << "linenormal  : " << lineVector << endl;
+	//cout << "localpoint  : " << localPoint << endl;
+	//cout << "localresult : " << localResult << endl;
+	//cout << "angle       : " << angle << endl;
+	//cout << localRotateVector[0] << " , " << localRotateVector[1] << " , " << localRotateVector[2] << " , " << localRotateVector[3] << endl;
+	//cout << localRotateVector[4] << " , " << localRotateVector[5] << " , " << localRotateVector[6] << " , " << localRotateVector[7] << endl;
+	//cout << localRotateVector[8] << " , " << localRotateVector[9] << " , " << localRotateVector[10] << " , " << localRotateVector[11] << endl;
+	//cout << localRotateVector[12] << " , " << localRotateVector[13] << " , " << localRotateVector[14] << " , " << localRotateVector[15] << endl;
+	//cout << "result      : " << result << endl;
+	return result;
+}
+
 //计算某个骨骼点牵连的所有后续骨骼点下标
 vector<int> getAfterSkeletonIndex(SkeletonNode* skeletonInformation, int boneNode)
 {

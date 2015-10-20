@@ -20,7 +20,6 @@
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QSlider>
 #include <QtWidgets/QVBoxLayout>
@@ -135,11 +134,9 @@ public:
     QLabel *label_39;
     QLabel *label_40;
     QLabel *label_41;
-    QLineEdit *curSkeletonAlpha;
-    QLineEdit *curSkeletonBeta;
-    QLabel *label_43;
-    QLineEdit *curSkeletonLength;
     QPushButton *SkeletonChangeButton;
+    QSlider *curSkeletonAlpha;
+    QSlider *curSkeletonBeta;
 
     void setupUi(QWidget *ModelHandleClass)
     {
@@ -601,26 +598,18 @@ public:
         label_41->setObjectName(QStringLiteral("label_41"));
         label_41->setGeometry(QRect(10, 150, 71, 21));
         label_41->setFont(font4);
-        curSkeletonAlpha = new QLineEdit(groupBox_2);
-        curSkeletonAlpha->setObjectName(QStringLiteral("curSkeletonAlpha"));
-        curSkeletonAlpha->setGeometry(QRect(90, 100, 113, 20));
-        curSkeletonAlpha->setFont(font4);
-        curSkeletonBeta = new QLineEdit(groupBox_2);
-        curSkeletonBeta->setObjectName(QStringLiteral("curSkeletonBeta"));
-        curSkeletonBeta->setGeometry(QRect(90, 150, 113, 20));
-        curSkeletonBeta->setFont(font4);
-        label_43 = new QLabel(groupBox_2);
-        label_43->setObjectName(QStringLiteral("label_43"));
-        label_43->setGeometry(QRect(10, 190, 71, 21));
-        label_43->setFont(font4);
-        curSkeletonLength = new QLineEdit(groupBox_2);
-        curSkeletonLength->setObjectName(QStringLiteral("curSkeletonLength"));
-        curSkeletonLength->setGeometry(QRect(90, 190, 113, 20));
-        curSkeletonLength->setFont(font4);
         SkeletonChangeButton = new QPushButton(groupBox_2);
         SkeletonChangeButton->setObjectName(QStringLiteral("SkeletonChangeButton"));
         SkeletonChangeButton->setGeometry(QRect(160, 300, 75, 23));
         SkeletonChangeButton->setFont(font1);
+        curSkeletonAlpha = new QSlider(groupBox_2);
+        curSkeletonAlpha->setObjectName(QStringLiteral("curSkeletonAlpha"));
+        curSkeletonAlpha->setGeometry(QRect(80, 100, 160, 22));
+        curSkeletonAlpha->setOrientation(Qt::Horizontal);
+        curSkeletonBeta = new QSlider(groupBox_2);
+        curSkeletonBeta->setObjectName(QStringLiteral("curSkeletonBeta"));
+        curSkeletonBeta->setGeometry(QRect(80, 150, 160, 22));
+        curSkeletonBeta->setOrientation(Qt::Horizontal);
 
         retranslateUi(ModelHandleClass);
 
@@ -685,7 +674,6 @@ public:
         label_39->setText(QApplication::translate("ModelHandleClass", "\351\252\250\351\252\274:", 0));
         label_40->setText(QApplication::translate("ModelHandleClass", "Alpha:", 0));
         label_41->setText(QApplication::translate("ModelHandleClass", "Beta:", 0));
-        label_43->setText(QApplication::translate("ModelHandleClass", "Length:", 0));
         SkeletonChangeButton->setText(QApplication::translate("ModelHandleClass", "Change", 0));
     } // retranslateUi
 

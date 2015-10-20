@@ -15,6 +15,12 @@
 
 double getDistance(Vector3 bone_a, Vector3 bone_b);
 
+//点绕旋转轴旋转一定角度后的结果
+Vector3 rotateArroundLine(Vector3 point, Vector3 lineStart, Vector3 lineEnd, double angle);
+
+//将矩阵单位化
+Vector3 normalize(Vector3 vec);
+
 //获得两个vector3 的叉乘
 Vector3 getCrossProduct(Vector3 a, Vector3 b);
 

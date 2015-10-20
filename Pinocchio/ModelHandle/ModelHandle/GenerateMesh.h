@@ -13,6 +13,8 @@
 #include "BVHData.h"
 #include "SkeletonNode.h"
 
+#define BONECOUNT 17
+
 struct ArgData
 {
 	ArgData() :
@@ -67,7 +69,7 @@ public:
 	void rotateMesh();
 
 	//任意自由度改变骨骼，并相对静止牵动关联骨骼
-	void changeSkeleton(const int bone, double alpha, double beta, double length);
+	void changeSkeleton(const int bone, double alpha, double beta);
 
 	//同步改变单一骨骼
 	void changeSingleSkeleton(const int boneNode, const double scale);
@@ -107,6 +109,12 @@ public:
 
 	//寻找点击范围内点
 	void FindVertex(double x, double y);
+
+	//骨骼相对起始模型旋转角度数组
+	double rotateAngle[BONECOUNT][2];
+
+	//初始化记录骨骼旋转角数组
+	void initRotateAngleArray();
 
 	////BVH数据
 	//BVHData* BvhData;

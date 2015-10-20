@@ -101,6 +101,12 @@
     <ClCompile Include="StandardModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SkeletonInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OnceRotation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="modelhandle.h">
@@ -220,6 +226,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="SkeletonNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkeletonInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OnceRotation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

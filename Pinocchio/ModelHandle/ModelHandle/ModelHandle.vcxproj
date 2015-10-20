@@ -106,7 +106,9 @@
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="modelhandle.cpp" />
     <ClCompile Include="MyVerticeMesh.cpp" />
+    <ClCompile Include="OnceRotation.cpp" />
     <ClCompile Include="skeleton.cpp" />
+    <ClCompile Include="SkeletonInfo.cpp" />
     <ClCompile Include="SkeletonModel.cpp" />
     <ClCompile Include="sparse_matrix.cpp" />
     <ClCompile Include="StandardModel.cpp" />
@@ -159,12 +161,14 @@
     <ClInclude Include="mesh.h" />
     <ClInclude Include="multilinear.h" />
     <ClInclude Include="MyVerticeMesh.h" />
+    <ClInclude Include="OnceRotation.h" />
     <ClInclude Include="Pinocchio.h" />
     <ClInclude Include="pinocchioApi.h" />
     <ClInclude Include="pointprojector.h" />
     <ClInclude Include="quaddisttree.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="skeleton.h" />
+    <ClInclude Include="SkeletonInfo.h" />
     <ClInclude Include="SkeletonNode.h" />
     <ClInclude Include="sparse_matrix.h" />
     <ClInclude Include="StandardModel.h" />

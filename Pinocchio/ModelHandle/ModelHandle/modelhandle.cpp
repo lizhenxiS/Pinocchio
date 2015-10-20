@@ -129,7 +129,6 @@ void ModelHandle::disableSlider()
 	ui.SkeletonChooseBox->setEnabled(false);
 	ui.curSkeletonAlpha->setEnabled(false);
 	ui.curSkeletonBeta->setEnabled(false);
-	ui.curSkeletonLength->setEnabled(false);
 	ui.SkeletonChangeButton->setEnabled(false);
 }
 
@@ -187,7 +186,6 @@ void ModelHandle::enableSlider()
 	ui.SkeletonChooseBox->setEnabled(true);
 	ui.curSkeletonAlpha->setEnabled(true);
 	ui.curSkeletonBeta->setEnabled(true);
-	ui.curSkeletonLength->setEnabled(true);
 	ui.SkeletonChangeButton->setEnabled(true);
 }
 
@@ -234,6 +232,8 @@ void ModelHandle::initSlider()
 	ui.cst_16->setValue(0);
 	ui.cst_17->setValue(0);
 
+	ui.curSkeletonAlpha->setValue(0);
+	ui.curSkeletonBeta->setValue(0);
 }
 
 void ModelHandle::initBox()
@@ -299,6 +299,9 @@ void ModelHandle::setSlider()
 	ui.cst_15->setRange(0, 100);
 	ui.cst_16->setRange(0, 100);
 	ui.cst_17->setRange(0, 100);
+
+	ui.curSkeletonAlpha->setRange(-180, 180);
+	ui.curSkeletonBeta->setRange(-180, 180);
 }
 
 void ModelHandle::setConnect()
@@ -355,6 +358,7 @@ void ModelHandle::setConnect()
 	connect(ui.stressBox, SIGNAL(stateChanged(int)), this, SLOT(slotStressBox()));
 
 	connect(ui.energyButton, SIGNAL(clicked()), this, SLOT(slotEnergyButton()));
+
 	connect(ui.SkeletonChooseBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slotSkeletonChooseBox()));
 	connect(ui.SkeletonChangeButton, SIGNAL(clicked()), this, SLOT(slotBVHChange()));
 }
@@ -363,22 +367,19 @@ void ModelHandle::setConnect()
 void ModelHandle::slotSkeletonChooseBox()
 {
 	int curSkeleton = ui.SkeletonChooseBox->currentIndex();
-	//double curSkeletonAlpha = ui.showWidget->model->BvhData->data[curSkeleton].angle_alpha;
-	//double curSkeletonBeta = ui.showWidget->model->BvhData->data[curSkeleton].angle_beta;
-	//double curSkeletonLen = ui.showWidget->model->BvhData->data[curSkeleton].length;
-	//ui.curSkeletonAlpha->setText(QString::fromStdString(toString(curSkeletonAlpha)));
-	//ui.curSkeletonBeta->setText(QString::fromStdString(toString(curSkeletonBeta)));
-	//ui.curSkeletonLength->setText(QString::fromStdString(toString(curSkeletonLen)));
+	double curSkeletonAlpha = ui.showWidget->model->rotateAngle[curSkeleton][0];
+	double curSkeletonBeta = ui.showWidget->model->rotateAngle[curSkeleton][1];
+	ui.curSkeletonAlpha->setValue(curSkeletonAlpha);
+	ui.curSkeletonBeta->setValue(curSkeletonBeta);
 }
 
 void ModelHandle::slotBVHChange()
 {
-	double bone = ui.SkeletonChooseBox->currentIndex() + 1;
-	double newSkeletonAlpha = ui.curSkeletonAlpha->text().toDouble();
-	double newSkeletonBeta = ui.curSkeletonBeta->text().toDouble();
-	double newSkeletonLen = ui.curSkeletonLength->text().toDouble();
+	double bone = ui.SkeletonChooseBox->currentIndex();
+	double newSkeletonAlpha = ui.curSkeletonAlpha->value();
+	double newSkeletonBeta = ui.curSkeletonBeta->value();
 
-	ui.showWidget->model->changeSkeleton(bone, newSkeletonAlpha, newSkeletonBeta, newSkeletonLen);
+	ui.showWidget->model->changeSkeleton(bone, newSkeletonAlpha, newSkeletonBeta);
 	//ui.showWidget->model->BvhData->printData();
 }
 
