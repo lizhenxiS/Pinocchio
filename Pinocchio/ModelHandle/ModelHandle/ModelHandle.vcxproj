@@ -102,16 +102,18 @@
     </ClCompile>
     <ClCompile Include="GenerateMesh.cpp" />
     <ClCompile Include="GenerateTool.cpp" />
+    <ClCompile Include="GiftWrap.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="modelhandle.cpp" />
     <ClCompile Include="MyVerticeMesh.cpp" />
     <ClCompile Include="OnceRotation.cpp" />
+    <ClCompile Include="Point2d.cpp" />
     <ClCompile Include="skeleton.cpp" />
     <ClCompile Include="SkeletonInfo.cpp" />
     <ClCompile Include="SkeletonModel.cpp" />
     <ClCompile Include="sparse_matrix.cpp" />
-    <ClCompile Include="StandardModel.cpp" />
+    <ClCompile Include="SkeletonLinkRotate.cpp" />
     <ClCompile Include="taucs_matrix.cpp" />
     <ClCompile Include="taucs_solver.cpp" />
     <ClCompile Include="taucs_util.cpp" />
@@ -151,6 +153,7 @@
     <ClInclude Include="GeneratedFiles\ui_modelhandle.h" />
     <ClInclude Include="GenerateMesh.h" />
     <ClInclude Include="GenerateTool.h" />
+    <ClInclude Include="GiftWrap.h" />
     <ClInclude Include="graphutils.h" />
     <ClInclude Include="hashutils.h" />
     <ClInclude Include="indexer.h" />
@@ -164,6 +167,7 @@
     <ClInclude Include="OnceRotation.h" />
     <ClInclude Include="Pinocchio.h" />
     <ClInclude Include="pinocchioApi.h" />
+    <ClInclude Include="Point2d.h" />
     <ClInclude Include="pointprojector.h" />
     <ClInclude Include="quaddisttree.h" />
     <ClInclude Include="rect.h" />
@@ -171,7 +175,7 @@
     <ClInclude Include="SkeletonInfo.h" />
     <ClInclude Include="SkeletonNode.h" />
     <ClInclude Include="sparse_matrix.h" />
-    <ClInclude Include="StandardModel.h" />
+    <ClInclude Include="SkeletonLinkRotate.h" />
     <ClInclude Include="taucs_matrix.h" />
     <ClInclude Include="taucs_solver.h" />
     <ClInclude Include="taucs_util.h" />

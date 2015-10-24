@@ -232,8 +232,11 @@ void ModelHandle::initSlider()
 	ui.cst_16->setValue(0);
 	ui.cst_17->setValue(0);
 
-	ui.curSkeletonAlpha->setValue(0);
-	ui.curSkeletonBeta->setValue(0);
+	int curSkeleton = ui.SkeletonChooseBox->currentIndex();
+	double curSkeletonAlpha = ui.showWidget->model->rotateAngle[curSkeleton][0];
+	double curSkeletonBeta = ui.showWidget->model->rotateAngle[curSkeleton][1];
+	ui.curSkeletonAlpha->setValue(curSkeletonAlpha);
+	ui.curSkeletonBeta->setValue(curSkeletonBeta);
 }
 
 void ModelHandle::initBox()
@@ -300,7 +303,7 @@ void ModelHandle::setSlider()
 	ui.cst_16->setRange(0, 100);
 	ui.cst_17->setRange(0, 100);
 
-	ui.curSkeletonAlpha->setRange(-180, 180);
+	ui.curSkeletonAlpha->setRange(0, 180);
 	ui.curSkeletonBeta->setRange(-180, 180);
 }
 
@@ -380,7 +383,6 @@ void ModelHandle::slotBVHChange()
 	double newSkeletonBeta = ui.curSkeletonBeta->value();
 
 	ui.showWidget->model->changeSkeleton(bone, newSkeletonAlpha, newSkeletonBeta);
-	//ui.showWidget->model->BvhData->printData();
 }
 
 void ModelHandle::slotObj_out()

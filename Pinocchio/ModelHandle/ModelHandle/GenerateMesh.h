@@ -10,7 +10,6 @@
 #include "pinocchioApi.h"
 #include "MyVerticeMesh.h"
 #include <map>
-#include "BVHData.h"
 #include "SkeletonNode.h"
 
 #define BONECOUNT 17
@@ -50,6 +49,8 @@ public:
 	//读取人体模型初始化数据
 	GenerateMesh(const string& file);
 
+	~GenerateMesh();
+
 	//导出模型
 	void OutPutMesh();
 
@@ -57,16 +58,10 @@ public:
 	void process();
 
 	//骨骼长度变化后模型映射变化处理
-	void extendMesh();
+	void extendMesh(vector<Vector3> oldBonePoint, vector<Vector3> newBonePoint);
 
 	//骨骼角度变化后模型映射变化处理
 	void ChangeFromSkeletonRotation();
-
-	//转动骨骼
-	void rotateSkeleton(const int bone, double alpha, double beta);
-
-	//转动模型
-	void rotateMesh();
 
 	//任意自由度改变骨骼，并相对静止牵动关联骨骼
 	void changeSkeleton(const int bone, double alpha, double beta);
@@ -116,13 +111,46 @@ public:
 	//初始化记录骨骼旋转角数组
 	void initRotateAngleArray();
 
-	////BVH数据
-	//BVHData* BvhData;
+	//获取模型质心点，用于camera旋转
+	Vector3 getModelCenter();
+
+	//计算模型质心
+	void updateModelCenter();
+
+	//绘制模型底面盒子
+	void drawModelBottomBox();
+
+	//更新模型底面盒子
+	void updateModelBottomBox();
+
+	//绘制模型桌底凸包
+	void drawModelConvexHull();
+
+	//更新模型着地凸包
+	void updateModelConvexHull();
+
+	//绘制模型质心
+	void drawModelCenter();
 
 	//更改比例
 	/********************************************/
 
 private:
+
+	//模型着地凸包
+	vector<Vector3> convexHull;
+
+	//模型底面盒子
+	Vector3 modelBottomBox[4];
+
+	//模型最低点
+	Vector3 modelMinPoint;
+
+	//模型最高点
+	Vector3 modelMaxPoint;
+
+	//模型质心
+	Vector3 modelQualityCenter;
 
 	//模型OBJ文件地址
 	string modelFile;
@@ -130,7 +158,7 @@ private:
 	//待改变的骨骼序号组
 	vector<changeBone> cBones;
 	//总骨骼数+1 = 18
-	int countBone;
+	int bonePointCount;
 
 	//骨骼信息
 	SkeletonNode* skeletonNodeInformation;
@@ -143,18 +171,22 @@ private:
 	vector<vector<Vector3>> ExpectGrow;
 
 
-	//骨骼模型
+	//骨骼模型（实时骨骼数据）
 	vector<Vector3> embedding;
-	//骨骼+模型结果数据(原始数据)
-	PinocchioOutput SMdata;
-	//骨骼模型(欧拉变换后的当前固定角度模型)
-	vector<Vector3> CurEmbedding;
+	//骨骼+模型结果数据(固定原始数据)
+	PinocchioOutput originData;
+	//骨骼模型 (旋转后的未缩放模型)
+	vector<Vector3> copy_embedding;
+	//骨骼初始长度记录数组
+	double* boneOriginLen;
 
+	//表面顶点模型 (实时模型数据)
+	Mesh* meshVertices;
+	//表面顶点模型 (固定原始数据)
+	MyVerticeMesh* originMeshVertices;
 	//表面顶点模型
-	Mesh* m;
-	//表面顶点模型副本，保持原始模型(原始数据)
-	MyVerticeMesh* copy_m;
-	//标架模型(骨骼angle为标准angle + length由模型初始值确定)
+	MyVerticeMesh* copy_MeshVertices;
+	
 
 
 	//来自骨骼增长的模型增长
@@ -163,6 +195,8 @@ private:
 	vector<Vector3> delta_Custom;
 	//来自Energy的模型变化
 	vector<Vector3> delta_Energy;
+	//来自旋转的临时模型增量
+	vector<Vector3> delta_rotate;
 	//权重数据
 	Attachment* attachment;
 

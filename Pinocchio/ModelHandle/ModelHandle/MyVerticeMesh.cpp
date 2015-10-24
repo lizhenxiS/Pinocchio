@@ -10,3 +10,11 @@ MyVerticeMesh::MyVerticeMesh(Mesh m)
 		vertices.push_back(*ite);
 	}
 }
+
+MyVerticeMesh::MyVerticeMesh(const MyVerticeMesh& m)
+{
+	for (int i = 0; i < m.vertices.size(); i++)
+	{
+		vertices.push_back(m.vertices[i]);
+	}
+}

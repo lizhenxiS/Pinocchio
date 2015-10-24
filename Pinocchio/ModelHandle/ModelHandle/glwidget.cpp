@@ -17,6 +17,8 @@ using namespace std;
 
 #define DEG_TO_RAD 0.017453
 #define PI 3.1415926535898
+#define GLWIN_WIDTH 600
+#define GLWIN_HEIGHT 600
 float angle;
 int rotateX = 0;
 int rotateY = 0;
@@ -87,8 +89,32 @@ GLWidget::GLWidget(QWidget *parent)
 	camera.xeye = 0;
 	camera.yeye = 0;
 	camera.zeye = 3.0;
-
+	
+	initArcBallMatrix();
 	setMouseTracking(true);
+}
+
+void GLWidget::initArcBallMatrix()
+{
+	arcBallMatrix[0] = 1;
+	arcBallMatrix[1] = 0;
+	arcBallMatrix[2] = 0;
+	arcBallMatrix[3] = 0;
+
+	arcBallMatrix[4] = 0;
+	arcBallMatrix[5] = 1;
+	arcBallMatrix[6] = 0;
+	arcBallMatrix[7] = 0;
+
+	arcBallMatrix[8] = 0;
+	arcBallMatrix[9] = 0;
+	arcBallMatrix[10] = 1;
+	arcBallMatrix[11] = 0;
+
+	arcBallMatrix[12] = 0;
+	arcBallMatrix[13] = 0;
+	arcBallMatrix[14] = 0;
+	arcBallMatrix[15] = 1;
 }
 
 GLWidget::~GLWidget()
@@ -132,6 +158,12 @@ void GLWidget::mouseReleaseEvent(QMouseEvent *e)
 	{
 		left_button_down = false;
 	}
+	
+}
+
+void GLWidget::setArcBallMatrix(double old_x, double old_y, double new_x, double new_y)
+{
+
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *e)
@@ -161,7 +193,8 @@ void GLWidget::wheelEvent(QWheelEvent *e)
 	}
 }
 
-GLfloat light_position[] = { 1.0, -1.0, 1.0, 0.0 };
+//GLfloat light_position[] = { 1.0, -1.0, 1.0, 0.0 };
+GLfloat light_position[] = { 0, 0, 3.0, 0.0 };
 
 void GLWidget::SetCamera(GLdouble x, GLdouble y)
 {
@@ -322,62 +355,26 @@ void GLWidget::paintGL()
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	/**********使相机围绕物体中心旋转，好像有问题？？**********/
+	Vector3 center = model->getModelCenter();
+	//glTranslated(center[0], center[1], center[2]);
 	gluLookAt(camera.xeye, camera.yeye, camera.zeye, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+	//gluLookAt(camera.xeye, camera.yeye, camera.zeye, center[0], center[1], center[2], 0.0, 1.0, 0.0);
+	//gluLookAt(0, 0, 3.0, 0, 0, 0, 0, 1, 0);
+	//glTranslated(-center[0], -center[1], -center[2]);
+	/********************/
+	
+	/*初始（0，0）为屏幕中间，现移动到左下*/
 	glTranslated(-0.5, -0.5, 0.0);
 
 	glRotated((GLdouble)rotateX, 1.0, 0.0, 0.0);
 	glRotated((GLdouble)rotateY, 0.0, 1.0, 0.0);
 	glRotated((GLdouble)rotateZ, 0.0, 0.0, 1.0);
+	
 
 	glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
 	glGetDoublev(GL_PROJECTION_MATRIX, projView);
 	glGetIntegerv(GL_VIEWPORT, viewView);
-
-	//if (view && !g_matrixCount)
-	//{
-	//	*view << "@@" << g_matrixCount  << endl;
-	//	for (int v = 0; v < 16; v++)
-	//	{
-	//		g_projMatrix[g_matrixCount][v] = projView[v];
-	//		g_modelviewMatrix[g_matrixCount][v] = modelView[v];
-	//		g_matrixCount++;
-
-	//		*view << projView[v] << " , " << modelView[v] << endl;
-	//	}
-	//}
-	//else
-	//{
-	//	if (view)
-	//	if (isDiff(g_projMatrix[g_matrixCount - 1], projView) || isDiff(g_modelviewMatrix[g_matrixCount - 1], modelView))
-	//	{
-	//		*view << "@@" << g_matrixCount << endl;
-	//		for (int v = 0; v < 16; v++)
-	//		{
-	//			g_projMatrix[g_matrixCount][v] = projView[v];
-	//			g_modelviewMatrix[g_matrixCount][v] = modelView[v];
-	//			g_matrixCount++;
-
-	//			*view << projView[v] << " , " << modelView[v] << endl;
-	//		}
-	//	}
-	//}
-
-
-	//if (view)
-	//{
-	//	*view << "after find :   " << endl;
-	//		glGetDoublev(GL_MODELVIEW_MATRIX, modelView);
-	//		glGetDoublev(GL_PROJECTION_MATRIX, projView);
-	//		*view << "modelView:" << endl;
-	//		for (int v = 0; v < 16; v++)
-	//			*view << modelView[v] << " ";
-	//		*view << endl << "projView :   " << endl;
-	//		for (int v = 0; v < 16; v++)
-	//			*view << projView[v] << " ";
-	//		*view << endl;
-	//}
-	
-
 
 	if (drawSkeleton)
 	{

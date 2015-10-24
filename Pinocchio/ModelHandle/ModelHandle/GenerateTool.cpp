@@ -329,6 +329,16 @@ bool almostEqual(double a, double b)
 		return false;
 }
 
+//自定义临界值判断两个数是否近似相等
+bool almostEqual(double a, double b, double threshold)
+{
+	if ((a >= b && a <= b + threshold)
+		|| (a <= b && a >= b - threshold))
+		return true;
+	else
+		return false;
+}
+
 
 //计算X轴旋转矩阵 16x1
 void rotateInX(double angle, double* result)
@@ -538,6 +548,28 @@ void drawPoint(Vector3 point, double radius, Vector3 color)
 	glTranslated(point[0], point[1], point[2]);
 	glutSolidSphere(radius, 3, 3);
 	glTranslated(-point[0], -point[1], -point[2]);
+}
+
+void drawConverxHull(vector<Vector3> convertxHull, Vector3 color)
+{
+	glColor3d(color[0], color[1], color[2]);
+	glBegin(GL_POLYGON);
+	for (int i = 0; i < convertxHull.size(); i++)
+	{
+		glVertex3d(convertxHull[i][0], convertxHull[i][1], convertxHull[i][2]);
+	}
+	glEnd();
+}
+
+void drawSquare(Vector3 pa, Vector3 pb, Vector3 pc, Vector3 pd, Vector3 color)
+{
+	glColor3d(color[0], color[1], color[2]);
+	glBegin(GL_QUADS);
+	glVertex3d(pa[0], pa[1], pa[2]);
+	glVertex3d(pb[0], pb[1], pb[2]);
+	glVertex3d(pc[0], pc[1], pc[2]);
+	glVertex3d(pd[0], pd[1], pd[2]);
+	glEnd();
 }
 
 string toString(double num)

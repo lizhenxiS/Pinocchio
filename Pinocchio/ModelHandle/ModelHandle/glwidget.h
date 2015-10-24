@@ -27,9 +27,12 @@ protected :
 	void wheelEvent(QWheelEvent *e);
 	void SetCamera(GLdouble x, GLdouble y);
 
+	void initArcBallMatrix();
+	void setArcBallMatrix(double old_x, double old_y, double new_x, double new_y);
 	void initializeGL();
 	void resizeGL(int w, int h);
 	void paintGL();
+
 
 public :
 	void inputFileName(const string& file);
@@ -39,6 +42,7 @@ private :
 	QBasicTimer timer;
 	double y_rotate;
 	string fileName;
+	GLdouble arcBallMatrix[16];
 
 };
 

@@ -27,6 +27,9 @@ Vector3 getCrossProduct(Vector3 a, Vector3 b);
 //以0.05为临界值判断两个数是否近似相等
 bool almostEqual(double a, double b);
 
+//自定义临界值判断两个数是否近似相等
+bool almostEqual(double a, double b, double threshold);
+
 //反向根据起始矩阵、结果矩阵、旋转轴 确定旋转角 3x1 3x1
 double transInX(Vector3 origin, Vector3 later);
 
@@ -97,6 +100,10 @@ double EBjVi(Vector3 bone_a, Vector3 bone_b, Vector3 v);
 void drawLine(Vector3& lina, Vector3& linb, Vector3& color, double thick);
 
 void drawPoint(Vector3 point, double radius, Vector3 color);
+
+void drawConverxHull(vector<Vector3> convertxHull, Vector3 color);
+
+void drawSquare(Vector3 pa, Vector3 pb, Vector3 pc, Vector3 pd, Vector3 color);
 
 string toString(double num);
 

@@ -11,6 +11,7 @@ class MyVerticeMesh{
 
 public:
 	MyVerticeMesh(Mesh m);
+	MyVerticeMesh(const MyVerticeMesh& m);
 
 public: //data
 	vector<MeshVertex> vertices;
