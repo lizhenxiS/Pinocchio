@@ -24,6 +24,9 @@ Vector3 normalize(Vector3 vec);
 //获得两个vector3 的叉乘
 Vector3 getCrossProduct(Vector3 a, Vector3 b);
 
+//获得两个vector3 的点乘
+double getPointProduct(Vector3 a, Vector3 b);
+
 //以0.05为临界值判断两个数是否近似相等
 bool almostEqual(double a, double b);
 

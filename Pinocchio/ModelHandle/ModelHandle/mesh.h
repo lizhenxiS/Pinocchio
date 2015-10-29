@@ -24,6 +24,8 @@
 #include "vector.h"
 #include "rect.h"
 
+#define USERDEFINED
+
 struct MeshVertex
 {
     MeshVertex() : edge(-1) {}

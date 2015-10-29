@@ -11,6 +11,7 @@
 #include "MyVerticeMesh.h"
 #include <map>
 #include "SkeletonNode.h"
+#include "PixelModel.h"
 
 #define BONECOUNT 17
 
@@ -50,6 +51,15 @@ public:
 	GenerateMesh(const string& file);
 
 	~GenerateMesh();
+
+	//初始化颜色信息
+	void initColor();
+
+	//初始化骨骼线条宽度
+	void initSkeletonWidth();
+
+	//初始化模型变化量信息
+	void initMeshDelta();
 
 	//导出模型
 	void OutPutMesh();
@@ -132,10 +142,17 @@ public:
 	//绘制模型质心
 	void drawModelCenter();
 
+	//从文件中读取法向量信息
+	void readVerticeNormal(string filename);
+
+	void drawPixel(Pixel p);
+
 	//更改比例
 	/********************************************/
 
 private:
+	//体素模型
+	PixelModel* pixelModel = NULL;
 
 	//模型着地凸包
 	vector<Vector3> convexHull;
@@ -161,12 +178,12 @@ private:
 	int bonePointCount;
 
 	//骨骼信息
-	SkeletonNode* skeletonNodeInformation;
+	SkeletonNode* skeletonNodeInformation = NULL;
 
 	//各骨骼距离规范化energy
-	double* deltaEnergy;
+	double* deltaEnergy = NULL;
 	//各骨骼期待向规范方向增长比例
-	double* expectGrowScale;
+	double* expectGrowScale = NULL;
 	//每个骨骼期望该点所在位置
 	vector<vector<Vector3>> ExpectGrow;
 
@@ -181,13 +198,14 @@ private:
 	double* boneOriginLen;
 
 	//表面顶点模型 (实时模型数据)
-	Mesh* meshVertices;
+	Mesh* meshVertices = NULL;
 	//表面顶点模型 (固定原始数据)
-	MyVerticeMesh* originMeshVertices;
+	MyVerticeMesh* originMeshVertices = NULL;
 	//表面顶点模型
-	MyVerticeMesh* copy_MeshVertices;
+	MyVerticeMesh* copy_MeshVertices = NULL;
 	
-
+	//模型顶点法向量
+	vector<Vector3> meshNormals;
 
 	//来自骨骼增长的模型增长
 	vector<Vector3> delta_skeleton;
@@ -198,7 +216,7 @@ private:
 	//来自旋转的临时模型增量
 	vector<Vector3> delta_rotate;
 	//权重数据
-	Attachment* attachment;
+	Attachment* attachment = NULL;
 
 	//所选需要平滑点
 	map<int, int> verticesToSmooth;
@@ -212,7 +230,12 @@ private:
 	//模型颜色
 	Vector3 color_Mesh;
 	//骨骼颜色
-	Vector3 color_Skele;
+	Vector3 color_Skele; 
+
+
+
+
+
 	//变化骨骼颜色
 	Vector3 color_Tran;
 	//骨骼厚度

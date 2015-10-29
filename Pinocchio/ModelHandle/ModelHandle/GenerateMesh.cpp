@@ -12,6 +12,8 @@
 #include "SkeletonLinkRotate.h"
 #include "GiftWrap.h"
 #include "Point2d.h"
+#include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -20,7 +22,6 @@ bool changeFromMap = false;
 bool SmoothState = false;
 bool StressState = false;
 
-fstream*  view;
 extern GLdouble modelView[16];
 extern GLdouble projView[16];
 extern GLint viewView[4];
@@ -49,28 +50,9 @@ int flaging = 0;
 //顶点相邻环
 vector<vector<int>> VertexNeighbor;
 
-//读取人体模型初始化数据
-GenerateMesh::GenerateMesh(const string& file)
+//初始化颜色信息
+void GenerateMesh::initColor()
 {
-	skeletonNodeInformation = NULL;
-	deltaEnergy = NULL;
-	expectGrowScale = NULL;
-	meshVertices = NULL;
-	copy_MeshVertices = NULL;
-	attachment = NULL;
-
-	cout << "Begin to generate Mesh :" << endl;
-
-	modelFile = file;
-	meshVertices = new Mesh(file);
-	//copy_m = new Mesh(file);
-
-	int verts = meshVertices->vertices.size();
-
-	view = new fstream("aaaaaview.txt", ios::out);
-	if (!view)
-		system("pause");
-
 	color_Mesh[0] = 0.0;
 	color_Mesh[1] = 1.0;
 	color_Mesh[2] = 1.0;
@@ -80,7 +62,65 @@ GenerateMesh::GenerateMesh(const string& file)
 	color_Tran[0] = 1.0;
 	color_Tran[1] = 0.0;
 	color_Tran[2] = 0.0;
+}
+
+//初始化骨骼线条宽度信息
+void GenerateMesh::initSkeletonWidth()
+{
 	thin = 5.0;
+}
+
+Vector3 getNormal(string str)
+{
+	istringstream istr(str);
+	string str0;
+	istr >> str0;
+	if (strcmp(str0.c_str(), "vn") == 0)
+	{
+		double x, y, z;
+		istr >> x >> y >> z;
+		return Vector3(x, y, z);
+	}
+	else
+		return Vector3(-1, -1, -1);
+}
+
+//从文件中读取法向量信息
+void GenerateMesh::readVerticeNormal(string filename)
+{
+	ifstream file(filename);
+	if (!file)
+	{
+		cout << "read normal failed" << endl;
+		return;
+	}
+	while (!file.eof())
+	{
+		string line;
+		getline(file, line);
+		if (line[0] == 'v' && line[1] == 'n')
+		{
+			Vector3 temp = getNormal(line);
+			meshNormals.push_back(temp);
+		}
+	}
+	file.close();
+}
+
+
+//读取人体模型初始化数据
+GenerateMesh::GenerateMesh(const string& file)
+{
+	initColor();
+	initSkeletonWidth();
+
+	cout << "Begin to generate Mesh :" << endl;
+
+	modelFile = file;
+	readVerticeNormal(file);						//从文件中读取法向量信息
+	meshVertices = new Mesh(file);					//获取骨骼信息及关联信息及删除重叠点
+
+	int verts = meshVertices->vertices.size();
 	flatShading = false;
 
 	modelQualityCenter = Vector3(0, 0, 0);
@@ -93,26 +133,122 @@ GenerateMesh::GenerateMesh(const string& file)
 		modelQualityCenter += meshVertices->vertices[i].pos;
 	}
 	modelQualityCenter /= meshVertices->vertices.size();
-
 	process();
+
+	cout << "start to counting pixel model..." << endl;
+	pixelModel = new PixelModel(meshVertices, modelMinPoint, modelMaxPoint);
+	cout << "finish counting pixel model" << endl;
+
+	int tempSum = 0;
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		tempSum += pixelModel->meshPixels[i].size();
+	}
+	cout << "实际绘制点数量：" << tempSum << endl;
 
 	if (verts != meshVertices->vertices.size())
 		system("pause");
-
 
 	changedIndex = new bool[embedding.size()];
 	for (int i = 0; i < embedding.size(); i++)
 	{
 		changedIndex[i] = false;
 	}
-
-
+	updateModelCenter();
 	Smooth_size = 0;
 	Stress_size = 0;
 	cout << meshVertices->edges.size() << " ___half" << endl;
 	cout << "Generate Mesh Success !" << embedding.size() << endl;
-	//this->BvhData = new BVHData(embedding, preIndex);
-	//this->BvhData->printData();
+}
+
+int pixelcolorr = 0;
+int pixelcolorg = 0;
+int pixelcolorb = 0;
+void GenerateMesh::drawPixel(Pixel p)
+{
+	//double x = meshVertices->vertices[p.attachPoint].pos[0];
+	//double y = meshVertices->vertices[p.attachPoint].pos[1];
+	//double z = meshVertices->vertices[p.attachPoint].pos[2];
+	double x = p.pos[0];
+	double y = p.pos[1];
+	double z = p.pos[2];
+	double halfLen = p.length / 2;
+	double halfWidth = p.wide / 2;
+	double halfHeight = p.height / 2;
+	double solid[8][3] = {
+		{ x - halfLen, y + halfHeight, z - halfWidth },
+		{ x + halfLen, y + halfHeight, z - halfWidth },
+		{ x + halfLen, y + halfHeight, z + halfWidth },
+		{ x - halfLen, y + halfHeight, z + halfWidth },
+		{ x - halfLen, y - halfHeight, z - halfWidth },
+		{ x + halfLen, y - halfHeight, z - halfWidth },
+		{ x + halfLen, y - halfHeight, z + halfWidth },
+		{ x - halfLen, y - halfHeight, z + halfWidth }
+	};
+	//if (aaaaaa == 0)
+	//{
+	//	for (int i = 0; i < 8; i++)
+	//	{
+	//		for (int j = 0; j < 3; j++)
+	//			cout << solid[i][j] << " ";
+	//		cout << endl;
+	//	}
+	//	cout << "length : " << solid[5][0] - solid[4][0] << endl;
+	//	cout << "width  : " << solid[6][2] - solid[5][2] << endl;
+	//	cout << "height : " << solid[0][1] - solid[4][1] << endl;
+	//	aaaaaa++;
+	//}
+
+	srand((int)time(NULL));
+	double r = ((pixelcolorr) % 256) / 256;
+	double g = ((pixelcolorg) % 256) / 256;
+	double b = ((pixelcolorb) % 256) / 256;
+	pixelcolorr += 93;
+	pixelcolorg += 93;
+	pixelcolorb += 93;
+	glColor3d(r, g, b);
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[0]);
+	glVertex3dv(solid[3]);
+	glVertex3dv(solid[2]);
+	glVertex3dv(solid[1]);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[1]);
+	glVertex3dv(solid[2]);
+	glVertex3dv(solid[6]);
+	glVertex3dv(solid[5]);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[3]);
+	glVertex3dv(solid[7]);
+	glVertex3dv(solid[6]);
+	glVertex3dv(solid[2]);
+	glEnd();
+
+	glColor3b(100, 100, 100);
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[0]);
+	glVertex3dv(solid[4]);
+	glVertex3dv(solid[7]);
+	glVertex3dv(solid[3]);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[0]);
+	glVertex3dv(solid[1]);
+	glVertex3dv(solid[5]);
+	glVertex3dv(solid[4]);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex3dv(solid[7]);
+	glVertex3dv(solid[4]);
+	glVertex3dv(solid[5]);
+	glVertex3dv(solid[6]);
+	glEnd();
 }
 
 //析构函数
@@ -141,6 +277,14 @@ GenerateMesh::~GenerateMesh()
 	if (attachment != NULL)
 	{
 		delete attachment;
+	}
+	if (originMeshVertices != NULL)
+	{
+		delete originMeshVertices;
+	}
+	if (pixelModel != NULL)
+	{
+		delete pixelModel;
 	}
 }
 
@@ -279,7 +423,11 @@ void GenerateMesh::OutPutMesh()
 	cout << "Obj file output Success !" << endl;
 }
 
-//数据获取
+/*
+数据获取
+计算模型点法向量
+骨骼适配输入模型
+*/
 void GenerateMesh::process()
 {
 	//传入参数的信息存储
@@ -555,7 +703,6 @@ void GenerateMesh::ChangeFromSkeletonRotation()
 //骨骼长度变化后模型映射变化处理
 void GenerateMesh::extendMesh(vector<Vector3> oldBonePoint, vector<Vector3> newBonePoint)
 {
-
 	//顶点临时替代
 	Vector3 newMeshVertice;
 	//顶点数
@@ -598,24 +745,9 @@ void GenerateMesh::extendMesh(vector<Vector3> oldBonePoint, vector<Vector3> newB
 				+ (oldMeshVertice - projTemp)*(RjTemp - 1)
 				+ EBjViTemp * SBjTemp);		
 
-			//projTemp = proj(copy_embedding[startNode], copy_embedding[endNode], copy_MeshVertices->vertices[i].pos);
-			//RjTemp = Rj(copy_embedding[startNode], copy_embedding[endNode], embedding[skeletonNodeInformation[endNode].parentIndex], embedding[j + 1]);
-			//SBjTemp = SBj(copy_embedding[startNode], copy_embedding[endNode], embedding[skeletonNodeInformation[endNode].parentIndex], embedding[j + 1]);
-			//EBjViTemp = EBjVi(copy_embedding[startNode], copy_embedding[endNode], copy_MeshVertices->vertices[i].pos);
-			//weight = (0.5 + originData.attachment->getWeights(i)[j] * 10000.0) / 10000.0;
-
-			//	for (int k = 0; k < 3; k++)
-			//	{
-			//		temp[k] += weight*(embedding[startNode][k] + (copy_MeshVertices->vertices[i].pos[k] - copy_embedding[startNode][k])
-			//			+ (copy_MeshVertices->vertices[i].pos[k] - projTemp[k])*(RjTemp - 1)
-			//			+ EBjViTemp * SBjTemp[k]);
-			//	}
 		}
 		
 		meshVertices->vertices[i].pos = newMeshVertice;
-		//delta_skeleton[i][0] = temp[0] - copy_MeshVertices->vertices[i].pos[0];
-		//delta_skeleton[i][1] = temp[1] - copy_MeshVertices->vertices[i].pos[1];
-		//delta_skeleton[i][2] = temp[2] - copy_MeshVertices->vertices[i].pos[2];
 	}
 }
 
@@ -651,7 +783,31 @@ void GenerateMesh::initRotateAngleArray()
 	{
 		if (i == 0 || i == 2 || i == 11 || i == 14)
 		{
-			alpha = 0;
+			switch (i)
+			{
+			case 0:
+				preIndex = 0;
+				prepreIndex = 3;
+				break;
+			case 2:
+				preIndex = 0;
+				prepreIndex = 1;
+				break;
+			case 11:
+				preIndex = 0;
+				prepreIndex = 15;
+				break;
+			case 14:
+				preIndex = 0;
+				prepreIndex = 12;
+				break;
+			default:
+				break;
+			}
+			boneNode = embedding[i + 1];
+			preBoneNode = embedding[preIndex];
+			prepreBoneNode = embedding[prepreIndex];
+			alpha = AngleInSpace(boneNode, preBoneNode, prepreBoneNode);
 			beta = 0;
 		}
 		else
@@ -675,8 +831,9 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 {
 	if (bone == 0 || bone == 2 || bone == 11 || bone == 14)
 	{
-		cout << "this skeletons can not be changed now" << endl;
-		return;
+		//cout << "this skeletons can not be changed now" << endl;
+		cout << "this skeletons will be deal innormal in SkeletonLinkRotate" << endl;
+		//return;
 	}
 	double tempAlpha = alpha - rotateAngle[bone][0];
 	double tempBeta = beta - rotateAngle[bone][1];
@@ -696,21 +853,6 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 		meshVertices->vertices[i].pos = temp.meshVertices->vertices[i].pos;
 	}
 
-	//temp.refreshMesh(copy_MeshVertices);
-	//for (int i = 0; i < temp.meshVertices->vertices.size(); i++)
-	//{
-	//	copy_MeshVertices->vertices[i].pos = temp.meshVertices->vertices[i].pos;
-	//}
-
-	////将原始骨骼副本旋转
-	//SkeletonLinkRotate temp1(originData, copy_embedding, skeletonNodeInformation);
-	//temp1.rotateSkeleton(bone, embedding, tempAlpha, tempBeta);
-	//for (int j = 0; j < bonePointCount; j++)
-	//{
-	//	copy_embedding[j] = temp1.skeletonPoints[j];
-	//}
-
-	//updateModel();
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
@@ -754,17 +896,6 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 	embedding[boneNode][2] =
 		scale * boneOriginLen[boneNode - 1] * curUnitVector[2]
 		+ embedding[skeletonNodeInformation[boneNode].parentIndex][2];
-	//embedding[boneNode][0] =
-	//	scale * (copy_embedding[boneNode][0] - copy_embedding[skeletonNodeInformation[boneNode].parentIndex][0])
-	//	+ embedding[skeletonNodeInformation[boneNode].parentIndex][0];
-	//embedding[boneNode][1] =
-	//	scale * (copy_embedding[boneNode][1] - copy_embedding[skeletonNodeInformation[boneNode].parentIndex][1])
-	//	+ embedding[skeletonNodeInformation[boneNode].parentIndex][1];
-	//embedding[boneNode][2] =
-	//	scale * (copy_embedding[boneNode][2] - copy_embedding[skeletonNodeInformation[boneNode].parentIndex][2])
-	//	+ embedding[skeletonNodeInformation[boneNode].parentIndex][2];
-
-
 
 	for (int i = 0; i < concernNodes.size(); i++)
 	{
@@ -785,14 +916,13 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 	extendMesh(oldBonePoint, newBonePoint);
 	CountGrowCustom();
 
-	//updateModel();
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
 }
 
 
-//绘制骨骼
+//绘制骨骼shunj 
 void GenerateMesh::drawSkeleton()
 {
 	for (int i = 1; i < bonePointCount; i++)
@@ -808,6 +938,16 @@ void GenerateMesh::drawSkeleton()
 	drawModelBottomBox();
 	drawModelConvexHull();
 	drawModelCenter();
+
+
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		int tempCount = pixelModel->meshPixels[i].size();
+		for (int j = 0; j < tempCount; j++)
+		{
+			drawPixel(pixelModel->meshPixels[i][j]);
+		}
+	}
 }
 
 #define MODELBOTTOMSCALE 0.005
@@ -901,8 +1041,6 @@ void GenerateMesh::updateModelCenter()
 //绘制模型
 void GenerateMesh::drawMesh()
 {
-	//updateModel();
-
 	Vector3 normal;
 	glBegin(GL_TRIANGLES);
 	for (int i = 0; i < (int)meshVertices->edges.size(); ++i) {
@@ -1006,6 +1144,7 @@ void GenerateMesh::clearModelChange()
 
 	cout << "Model has been cleared !" << endl;
 	updateModelCenter();
+	initRotateAngleArray();
 }
 
 //获取模型质心点，用于camera旋转

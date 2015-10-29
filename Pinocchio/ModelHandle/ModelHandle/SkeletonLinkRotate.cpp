@@ -41,8 +41,38 @@ void SkeletonLinkRotate::rotateSkeleton(const int bone, const vector<Vector3>& p
 	clearRotateVector();
 
 	int boneNode = bone + 1;
-	int preIndex = skeletonNodeInformation[boneNode].parentIndex;
-	int prepreIndex = skeletonNodeInformation[preIndex].parentIndex;
+	int preIndex;
+	int prepreIndex;
+	if (bone == 0 || bone == 2 || bone == 11 || bone == 14)
+	{
+		cout << "this skeletons has been dealt innormal there" << endl;
+		switch (boneNode)
+		{
+		case 1:
+			preIndex = 0;
+			prepreIndex = 3;
+			break;
+		case 3:
+			preIndex = 0;
+			prepreIndex = 1;
+			break;
+		case 12:
+			preIndex = 0;
+			prepreIndex = 15;
+			break;
+		case 15:
+			preIndex = 0;
+			prepreIndex = 12;
+			break;
+		default:
+			break;
+		}
+	}
+	else
+	{
+		preIndex = skeletonNodeInformation[boneNode].parentIndex;
+		prepreIndex = skeletonNodeInformation[preIndex].parentIndex;
+	}
 	Vector3 prePoint = points[preIndex];
 	Vector3 preprePoint = points[prepreIndex];
 	Vector3 point = points[boneNode];

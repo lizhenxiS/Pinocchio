@@ -36,6 +36,12 @@
     <Filter Include="TAUCS">
       <UniqueIdentifier>{a2f30670-a32d-4f8c-ab55-85e9a87d5bac}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Flann">
+      <UniqueIdentifier>{fabd1dbd-6c20-4fec-a942-a599733e336a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SDFGen">
+      <UniqueIdentifier>{a9ee0ee4-8fb1-43cc-90f6-b02405a9e086}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -112,6 +118,15 @@
     </ClCompile>
     <ClCompile Include="GiftWrap.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Pixel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PixleModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SDFGen_makelevelset3.cpp">
+      <Filter>SDFGen</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -245,6 +260,39 @@
     </ClInclude>
     <ClInclude Include="GiftWrap.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Pixel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PixelModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="flann\flann.h">
+      <Filter>Flann</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_array1.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_array2.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_array3.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_hashgrid.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_hashtable.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_makelevelset3.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_util.h">
+      <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="SDFGen_vec.h">
+      <Filter>SDFGen</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

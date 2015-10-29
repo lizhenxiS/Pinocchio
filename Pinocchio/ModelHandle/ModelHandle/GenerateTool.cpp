@@ -16,6 +16,12 @@ Vector3 getCrossProduct(Vector3 a, Vector3 b)
 		a[0] * b[1] - a[1] * b[0]);
 }
 
+//获得两个vector3 的点乘
+double getPointProduct(Vector3 a, Vector3 b)
+{
+	return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
 //将矩阵单位化
 Vector3 normalize(Vector3 vec)
 {

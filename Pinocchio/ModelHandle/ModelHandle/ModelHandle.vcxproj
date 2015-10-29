@@ -44,7 +44,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IncludePath>C:\S_software\Qt\5.3\msvc2013_opengl\include;..\glut37;..\glew-1.11.0\include;..\TAUCS\include;..\TAUCS\src;$(IncludePath)</IncludePath>
-    <LibraryPath>..\glut37;..\glew-1.11.0\lib\Release\Win32;..\Pinoc_lib;..\TAUCS\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>..\glut37;..\glew-1.11.0\lib\Release\Win32;..\Pinoc_lib;..\TAUCS\lib;..\flann;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -75,7 +75,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <AdditionalLibraryDirectories>$(QTDIR)\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;glut32.lib;glew32.lib;wsock32.lib;comctl32.lib;Pinocchio.lib;libatlas.lib;libcblas.lib;libf77blas.lib;libg2c.lib;libgcc.lib;liblapack.lib;libmetis.lib;libtaucs.lib;libtstatlas.lib;vcf2c.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmain.lib;Qt5Core.lib;Qt5Gui.lib;Qt5OpenGL.lib;opengl32.lib;glu32.lib;Qt5Widgets.lib;glut32.lib;glew32.lib;wsock32.lib;comctl32.lib;Pinocchio.lib;libatlas.lib;libcblas.lib;libf77blas.lib;libg2c.lib;libgcc.lib;liblapack.lib;libmetis.lib;libtaucs.lib;libtstatlas.lib;vcf2c.lib;flann.lib;flann_cpp_s.lib;flann_s.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions>/SAFESEH:NO %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
@@ -104,10 +104,13 @@
     <ClCompile Include="GenerateTool.cpp" />
     <ClCompile Include="GiftWrap.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="SDFGen_makelevelset3.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="modelhandle.cpp" />
     <ClCompile Include="MyVerticeMesh.cpp" />
     <ClCompile Include="OnceRotation.cpp" />
+    <ClCompile Include="Pixel.cpp" />
+    <ClCompile Include="PixleModel.cpp" />
     <ClCompile Include="Point2d.cpp" />
     <ClCompile Include="skeleton.cpp" />
     <ClCompile Include="SkeletonInfo.cpp" />
@@ -144,21 +147,28 @@
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="SDFGen_array1.h" />
+    <ClInclude Include="SDFGen_array2.h" />
+    <ClInclude Include="SDFGen_array3.h" />
     <ClInclude Include="attachment.h" />
     <ClInclude Include="BVHData.h" />
     <ClInclude Include="BVHPoint.h" />
     <ClInclude Include="debugging.h" />
     <ClInclude Include="deriv.h" />
     <ClInclude Include="dtree.h" />
+    <ClInclude Include="flann\flann.h" />
     <ClInclude Include="GeneratedFiles\ui_modelhandle.h" />
     <ClInclude Include="GenerateMesh.h" />
     <ClInclude Include="GenerateTool.h" />
     <ClInclude Include="GiftWrap.h" />
     <ClInclude Include="graphutils.h" />
+    <ClInclude Include="SDFGen_hashgrid.h" />
+    <ClInclude Include="SDFGen_hashtable.h" />
     <ClInclude Include="hashutils.h" />
     <ClInclude Include="indexer.h" />
     <ClInclude Include="intersector.h" />
     <ClInclude Include="lsqSolver.h" />
+    <ClInclude Include="SDFGen_makelevelset3.h" />
     <ClInclude Include="mathutils.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
@@ -167,6 +177,8 @@
     <ClInclude Include="OnceRotation.h" />
     <ClInclude Include="Pinocchio.h" />
     <ClInclude Include="pinocchioApi.h" />
+    <ClInclude Include="Pixel.h" />
+    <ClInclude Include="PixelModel.h" />
     <ClInclude Include="Point2d.h" />
     <ClInclude Include="pointprojector.h" />
     <ClInclude Include="quaddisttree.h" />
@@ -180,7 +192,9 @@
     <ClInclude Include="taucs_solver.h" />
     <ClInclude Include="taucs_util.h" />
     <ClInclude Include="transform.h" />
+    <ClInclude Include="SDFGen_util.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="SDFGen_vec.h" />
     <ClInclude Include="vector.h" />
     <ClInclude Include="vecutils.h" />
     <CustomBuild Include="glwidget.h">

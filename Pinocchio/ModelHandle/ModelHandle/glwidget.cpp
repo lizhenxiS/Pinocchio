@@ -288,9 +288,6 @@ void GLWidget::resizeGL(int w, int h)
 	glLoadIdentity();
 }
 
-
-extern fstream*  view;
-
 double g_projMatrix[1000][16];
 double g_modelviewMatrix[1000][16];
 int g_matrixCount = 0;

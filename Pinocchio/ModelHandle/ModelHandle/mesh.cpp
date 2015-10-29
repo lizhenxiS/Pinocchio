@@ -29,6 +29,8 @@
 //∂•µ„œ‡¡⁄ª∑
 extern vector<vector<int>> VertexNeighbor;
 
+#define USERDEFINED
+
 
 Mesh::Mesh(const string &file)
     : scale(1.)
