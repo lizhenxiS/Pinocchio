@@ -14,6 +14,7 @@
 #include "Point2d.h"
 #include <sstream>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
 
@@ -136,7 +137,8 @@ GenerateMesh::GenerateMesh(const string& file)
 	process();
 
 	cout << "start to counting pixel model..." << endl;
-	pixelModel = new PixelModel(meshVertices, modelMinPoint, modelMaxPoint);
+	pixelModel = new PixelModel(/*&originData,*/ meshVertices, modelMinPoint, modelMaxPoint);
+	cout << "表面体素个数：" << pixelModel->surfaceVoxelCount << endl;
 	cout << "finish counting pixel model" << endl;
 
 	int tempSum = 0;
@@ -164,90 +166,50 @@ GenerateMesh::GenerateMesh(const string& file)
 int pixelcolorr = 0;
 int pixelcolorg = 0;
 int pixelcolorb = 0;
-void GenerateMesh::drawPixel(Pixel p)
+void GenerateMesh::drawPixel(Pixel p, Vector3 color)
 {
-	//double x = meshVertices->vertices[p.attachPoint].pos[0];
-	//double y = meshVertices->vertices[p.attachPoint].pos[1];
-	//double z = meshVertices->vertices[p.attachPoint].pos[2];
-	double x = p.pos[0];
-	double y = p.pos[1];
-	double z = p.pos[2];
-	double halfLen = p.length / 2;
-	double halfWidth = p.wide / 2;
-	double halfHeight = p.height / 2;
-	double solid[8][3] = {
-		{ x - halfLen, y + halfHeight, z - halfWidth },
-		{ x + halfLen, y + halfHeight, z - halfWidth },
-		{ x + halfLen, y + halfHeight, z + halfWidth },
-		{ x - halfLen, y + halfHeight, z + halfWidth },
-		{ x - halfLen, y - halfHeight, z - halfWidth },
-		{ x + halfLen, y - halfHeight, z - halfWidth },
-		{ x + halfLen, y - halfHeight, z + halfWidth },
-		{ x - halfLen, y - halfHeight, z + halfWidth }
-	};
-	//if (aaaaaa == 0)
-	//{
-	//	for (int i = 0; i < 8; i++)
-	//	{
-	//		for (int j = 0; j < 3; j++)
-	//			cout << solid[i][j] << " ";
-	//		cout << endl;
-	//	}
-	//	cout << "length : " << solid[5][0] - solid[4][0] << endl;
-	//	cout << "width  : " << solid[6][2] - solid[5][2] << endl;
-	//	cout << "height : " << solid[0][1] - solid[4][1] << endl;
-	//	aaaaaa++;
-	//}
-
-	srand((int)time(NULL));
-	double r = ((pixelcolorr) % 256) / 256;
-	double g = ((pixelcolorg) % 256) / 256;
-	double b = ((pixelcolorb) % 256) / 256;
-	pixelcolorr += 93;
-	pixelcolorg += 93;
-	pixelcolorb += 93;
-	glColor3d(r, g, b);
+	glColor3d(color[0], color[1], color[2]);
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[0]);
-	glVertex3dv(solid[3]);
-	glVertex3dv(solid[2]);
-	glVertex3dv(solid[1]);
+	glVertex3dv(p.box[0]);
+	glVertex3dv(p.box[3]);
+	glVertex3dv(p.box[2]);
+	glVertex3dv(p.box[1]);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[1]);
-	glVertex3dv(solid[2]);
-	glVertex3dv(solid[6]);
-	glVertex3dv(solid[5]);
+	glVertex3dv(p.box[1]);
+	glVertex3dv(p.box[2]);
+	glVertex3dv(p.box[6]);
+	glVertex3dv(p.box[5]);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[3]);
-	glVertex3dv(solid[7]);
-	glVertex3dv(solid[6]);
-	glVertex3dv(solid[2]);
+	glVertex3dv(p.box[3]);
+	glVertex3dv(p.box[7]);
+	glVertex3dv(p.box[6]);
+	glVertex3dv(p.box[2]);
 	glEnd();
 
 	glColor3b(100, 100, 100);
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[0]);
-	glVertex3dv(solid[4]);
-	glVertex3dv(solid[7]);
-	glVertex3dv(solid[3]);
+	glVertex3dv(p.box[0]);
+	glVertex3dv(p.box[4]);
+	glVertex3dv(p.box[7]);
+	glVertex3dv(p.box[3]);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[0]);
-	glVertex3dv(solid[1]);
-	glVertex3dv(solid[5]);
-	glVertex3dv(solid[4]);
+	glVertex3dv(p.box[0]);
+	glVertex3dv(p.box[1]);
+	glVertex3dv(p.box[5]);
+	glVertex3dv(p.box[4]);
 	glEnd();
 
 	glBegin(GL_POLYGON);
-	glVertex3dv(solid[7]);
-	glVertex3dv(solid[4]);
-	glVertex3dv(solid[5]);
-	glVertex3dv(solid[6]);
+	glVertex3dv(p.box[7]);
+	glVertex3dv(p.box[4]);
+	glVertex3dv(p.box[5]);
+	glVertex3dv(p.box[6]);
 	glEnd();
 }
 
@@ -700,58 +662,6 @@ void GenerateMesh::ChangeFromSkeletonRotation()
 
 }
 
-//骨骼长度变化后模型映射变化处理
-void GenerateMesh::extendMesh(vector<Vector3> oldBonePoint, vector<Vector3> newBonePoint)
-{
-	//顶点临时替代
-	Vector3 newMeshVertice;
-	//顶点数
-	int VerticesSize = meshVertices->vertices.size();
-
-	int weightSize;
-	Vector3 projTemp;
-	double RjTemp;
-	Vector3 SBjTemp;
-	double EBjViTemp;
-	double weight;
-
-
-	for (int i = 0; i < VerticesSize; i++)
-	{
-		newMeshVertice = Vector3(0, 0, 0);
-
-		weightSize = originData.attachment->getWeights(i).size();
-
-		/*?????????????????*/ //weightSize=17  以及 j 取值不确定 bone_a bone_b 选取
-		//假定 bone_a 为起点  bone_b 为前点
-		for (int j = 0; j < weightSize; j++)
-		{
-			//第j+1根骨骼
-			int startNode = skeletonNodeInformation[j + 1].parentIndex;
-			int endNode = j + 1;
-			Vector3 oldStartPoint = oldBonePoint[startNode];
-			Vector3 oldEndPoint = oldBonePoint[endNode];
-			Vector3 newStartPoint = newBonePoint[startNode];
-			Vector3 newEndPoint = newBonePoint[endNode];
-			Vector3 oldMeshVertice = meshVertices->vertices[i].pos;
-
-			projTemp = proj(oldStartPoint, oldEndPoint, oldMeshVertice);
-			RjTemp = Rj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
-			SBjTemp = SBj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
-			EBjViTemp = EBjVi(oldStartPoint, oldEndPoint, oldMeshVertice);
-			weight = (0.5 + originData.attachment->getWeights(i)[j] * 10000.0) / 10000.0;
-
-			newMeshVertice += weight*(embedding[startNode] + (oldMeshVertice - oldStartPoint)
-				+ (oldMeshVertice - projTemp)*(RjTemp - 1)
-				+ EBjViTemp * SBjTemp);		
-
-		}
-		
-		meshVertices->vertices[i].pos = newMeshVertice;
-	}
-}
-
-
 //将骨骼直接转换为所选模板
 void GenerateMesh::changeSkeletonFromMap()
 {
@@ -853,22 +763,24 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 		meshVertices->vertices[i].pos = temp.meshVertices->vertices[i].pos;
 	}
 
+	//变化完模型后继续变化体素
+	temp.refreshVoxel(meshVertices->vertices.size(), pixelModel);
+
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
 }
 
-
 //同步改变单一骨骼
 void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 {
 
-	vector<Vector3> oldBonePoint;
-	vector<Vector3> newBonePoint;
+	vector<Vector3> oldBoneNodePoint;
+	vector<Vector3> newBoneNodePoint;
 
 	for (int i = 0; i < embedding.size(); i++)
 	{
-		oldBonePoint.push_back(embedding[i]);
+		oldBoneNodePoint.push_back(embedding[i]);
 	}
 
 	if (((scale - 1) < 0.05) && ((scale - 1) > 0.05))
@@ -910,10 +822,11 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 
 	for (int i = 0; i < embedding.size(); i++)
 	{
-		newBonePoint.push_back(embedding[i]);
+		newBoneNodePoint.push_back(embedding[i]);
 	}
 
-	extendMesh(oldBonePoint, newBonePoint);
+	extendMesh(oldBoneNodePoint, newBoneNodePoint);
+	updateModelVoxelInScale(oldBoneNodePoint, newBoneNodePoint);
 	CountGrowCustom();
 
 	updateModelCenter();
@@ -921,6 +834,142 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 	updateModelConvexHull();
 }
 
+//骨骼长度变化后模型映射变化处理
+void GenerateMesh::extendMesh(vector<Vector3> oldBoneNodePoint, vector<Vector3> newBoneNodePoint)
+{
+	//顶点临时替代
+	Vector3 newMeshVertice;
+	//顶点数
+	int VerticesSize = meshVertices->vertices.size();
+
+	int weightSize;
+	Vector3 projTemp;
+	double RjTemp;
+	Vector3 SBjTemp;
+	double EBjViTemp;
+	double weight;
+
+
+	for (int i = 0; i < VerticesSize; i++)
+	{
+		newMeshVertice = Vector3(0, 0, 0);
+
+		weightSize = originData.attachment->getWeights(i).size();
+
+		/*?????????????????*/ //weightSize=17  以及 j 取值不确定 bone_a bone_b 选取
+		//假定 bone_a 为起点  bone_b 为前点
+		for (int j = 0; j < weightSize; j++)
+		{
+			//第j+1根骨骼
+			int startNode = skeletonNodeInformation[j + 1].parentIndex;
+			int endNode = j + 1;
+			Vector3 oldStartPoint = oldBoneNodePoint[startNode];
+			Vector3 oldEndPoint = oldBoneNodePoint[endNode];
+			Vector3 newStartPoint = newBoneNodePoint[startNode];
+			Vector3 newEndPoint = newBoneNodePoint[endNode];
+			Vector3 oldMeshVertice = meshVertices->vertices[i].pos;
+
+			projTemp = proj(oldStartPoint, oldEndPoint, oldMeshVertice);
+			RjTemp = Rj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+			SBjTemp = SBj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+			EBjViTemp = EBjVi(oldStartPoint, oldEndPoint, oldMeshVertice);
+			weight = (0.5 + originData.attachment->getWeights(i)[j] * 10000.0) / 10000.0;
+
+			newMeshVertice += weight*(embedding[startNode] + (oldMeshVertice - oldStartPoint)
+				+ (oldMeshVertice - projTemp)*(RjTemp - 1)
+				+ EBjViTemp * SBjTemp);
+
+		}
+
+		meshVertices->vertices[i].pos = newMeshVertice;
+	}
+}
+
+//更新放缩体素(每次放缩骨骼后必须调用)(同时更新体素模型重心、体积)
+void GenerateMesh::updateModelVoxelInScale(vector<Vector3> oldBoneNodePoint, vector<Vector3> newBoneNodePoint)
+{
+	//初始化体素模型重心、体积
+	pixelModel->qualityCenter = Vector3(0, 0, 0);
+	pixelModel->modelVolum = 0;
+
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
+		{
+			Vector3 newCenter = Vector3(0, 0, 0);
+			Vector3 newBox[8] = { Vector3(0, 0, 0), Vector3(0, 0, 0),
+				Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0),
+				Vector3(0, 0, 0), Vector3(0, 0, 0), Vector3(0, 0, 0) };
+			Vector3 oldCenter = Vector3(pixelModel->meshPixels[i][j].pos[0],
+				pixelModel->meshPixels[i][j].pos[1], pixelModel->meshPixels[i][j].pos[2]);
+			Vector3 oldBox[8];
+			for (int t = 0; t < 8; t++)
+			{
+				oldBox[t] = Vector3(pixelModel->meshPixels[i][j].box[t][0],
+					pixelModel->meshPixels[i][j].box[t][1], pixelModel->meshPixels[i][j].box[t][2]);
+			}
+			int weightSize;
+			Vector3 projTemp;
+			double RjTemp;
+			Vector3 SBjTemp;
+			double EBjViTemp;
+			double weight;
+			for (int k = 0; k < BONECOUNT; k++)
+			{
+				//第k+1根骨骼
+				int startNode = skeletonNodeInformation[k + 1].parentIndex;
+				int endNode = k + 1;
+				Vector3 oldStartPoint = oldBoneNodePoint[startNode];
+				Vector3 oldEndPoint = oldBoneNodePoint[endNode];
+				Vector3 newStartPoint = newBoneNodePoint[startNode];
+				Vector3 newEndPoint = newBoneNodePoint[endNode];
+
+				//center 部分
+				projTemp = proj(oldStartPoint, oldEndPoint, oldCenter);
+				RjTemp = Rj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+				SBjTemp = SBj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+				EBjViTemp = EBjVi(oldStartPoint, oldEndPoint, oldCenter);
+				weight = (0.5 + originData.attachment->getWeights(i)[k] * 10000.0) / 10000.0;
+				newCenter += weight*(embedding[startNode] + (oldCenter - oldStartPoint)
+					+ (oldCenter - projTemp)*(RjTemp - 1)
+					+ EBjViTemp * SBjTemp);
+
+				//box部分
+				for (int t = 0; t < 8; t++)
+				{
+					projTemp = proj(oldStartPoint, oldEndPoint, oldBox[t]);
+					RjTemp = Rj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+					SBjTemp = SBj(oldStartPoint, oldEndPoint, newStartPoint, newEndPoint);
+					EBjViTemp = EBjVi(oldStartPoint, oldEndPoint, oldBox[t]);
+					weight = (0.5 + originData.attachment->getWeights(i)[k] * 10000.0) / 10000.0;
+					newBox[t] += weight*(embedding[startNode] + (oldBox[t] - oldStartPoint)
+						+ (oldBox[t] - projTemp)*(RjTemp - 1)
+						+ EBjViTemp * SBjTemp);
+				}
+			}
+
+			pixelModel->meshPixels[i][j].pos[0] = newCenter[0];
+			pixelModel->meshPixels[i][j].pos[1] = newCenter[1];
+			pixelModel->meshPixels[i][j].pos[2] = newCenter[2];
+			for (int t = 0; t < 8; t++)
+			{
+				pixelModel->meshPixels[i][j].box[t][0] = newBox[t][0];
+				pixelModel->meshPixels[i][j].box[t][1] = newBox[t][1];
+				pixelModel->meshPixels[i][j].box[t][2] = newBox[t][2];
+			}
+			pixelModel->meshPixels[i][j].updateLWH();
+			pixelModel->modelVolum += pixelModel->meshPixels[i][j].getVolume();
+		}
+	}
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
+		{
+			pixelModel->qualityCenter += (pixelModel->meshPixels[i][j].getVolume() / pixelModel->modelVolum)
+				* Vector3(pixelModel->meshPixels[i][j].pos[0], pixelModel->meshPixels[i][j].pos[1], pixelModel->meshPixels[i][j].pos[2]);
+		}
+	}
+}
 
 //绘制骨骼shunj 
 void GenerateMesh::drawSkeleton()
@@ -938,17 +987,32 @@ void GenerateMesh::drawSkeleton()
 	drawModelBottomBox();
 	drawModelConvexHull();
 	drawModelCenter();
+}
 
-
+//绘制模型体素
+void GenerateMesh::drawVoxel()
+{
 	for (int i = 0; i < meshVertices->vertices.size(); i++)
 	{
 		int tempCount = pixelModel->meshPixels[i].size();
+		map<int, vector<int>>::iterator ite = pixelModel->surfaceIndex.find(i);
+
 		for (int j = 0; j < tempCount; j++)
 		{
-			drawPixel(pixelModel->meshPixels[i][j]);
+			//表面体素
+			if (ite != pixelModel->surfaceIndex.end()
+				&& std::find(ite->second.begin(), ite->second.end(), j) != ite->second.end())
+			{
+				drawPixel(pixelModel->meshPixels[i][j], Vector3(1, 0, 0));
+			}
+			else
+			{
+				drawPixel(pixelModel->meshPixels[i][j], Vector3(0.6, 0.6, 0));
+			}
 		}
 	}
 }
+
 
 #define MODELBOTTOMSCALE 0.005
 
@@ -1021,12 +1085,11 @@ void GenerateMesh::drawSkeletonPoint()
 //计算模型质心
 void GenerateMesh::updateModelCenter()
 {
+	//更新模型边框
 	modelMinPoint = Vector3(10000, 10000, 10000);
 	modelMaxPoint = Vector3(-10000, -10000, -10000);
-	modelQualityCenter = Vector3(0, 0, 0);
 	for (int i = 0; i < meshVertices->vertices.size(); i++)
 	{
-		modelQualityCenter += meshVertices->vertices[i].pos;
 		Vector3 tempPoint = meshVertices->vertices[i].pos;
 		modelMinPoint[0] = modelMinPoint[0] < tempPoint[0] ? modelMinPoint[0] : tempPoint[0];
 		modelMinPoint[1] = modelMinPoint[1] < tempPoint[1] ? modelMinPoint[1] : tempPoint[1];
@@ -1035,7 +1098,22 @@ void GenerateMesh::updateModelCenter()
 		modelMaxPoint[1] = modelMaxPoint[1] > tempPoint[1] ? modelMaxPoint[1] : tempPoint[1];
 		modelMaxPoint[2] = modelMaxPoint[2] > tempPoint[2] ? modelMaxPoint[2] : tempPoint[2];
 	}
-	modelQualityCenter /= meshVertices->vertices.size();
+
+	modelQualityCenter = pixelModel->qualityCenter;
+
+	cout << "当前模型重心为：" << modelQualityCenter << endl;
+}
+
+//碰撞检测
+void GenerateMesh::collisionCheck()
+{
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
+		{
+
+		}
+	}
 }
 
 //绘制模型

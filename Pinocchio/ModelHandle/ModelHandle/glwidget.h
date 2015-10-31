@@ -37,12 +37,22 @@ protected :
 public :
 	void inputFileName(const string& file);
 	GenerateMesh* model;
+	bool drawSkeleton;
+	bool drawMesh;
+	bool drawCoord;
+	bool drawVoxel;
+	int rotateX = 0;
+	int rotateY = 0;
+	int rotateZ = 0;
+	float angle;
 
 private :
 	QBasicTimer timer;
 	double y_rotate;
 	string fileName;
 	GLdouble arcBallMatrix[16];
+	bool hasModel = false;
+	bool left_button_down = false;
 
 };
 

@@ -19,17 +19,7 @@ using namespace std;
 #define PI 3.1415926535898
 #define GLWIN_WIDTH 600
 #define GLWIN_HEIGHT 600
-float angle;
-int rotateX = 0;
-int rotateY = 0;
-int rotateZ = 0;
 
-
-bool drawSkeleton;
-bool drawMesh;
-bool drawCoord;
-bool hasModel = false;
-bool left_button_down = false;
 
 GLdouble modelView[16];
 GLdouble projView[16];
@@ -385,6 +375,10 @@ void GLWidget::paintGL()
 	if (drawCoord)
 	{
 		DrawCoordinary();
+	}
+	if (drawVoxel)
+	{
+		model->drawVoxel();
 	}
 				
 	//Draw_Circle(curpt);

@@ -137,6 +137,7 @@ public:
     QPushButton *SkeletonChangeButton;
     QSlider *curSkeletonAlpha;
     QSlider *curSkeletonBeta;
+    QCheckBox *voxel_box;
 
     void setupUi(QWidget *ModelHandleClass)
     {
@@ -610,6 +611,9 @@ public:
         curSkeletonBeta->setObjectName(QStringLiteral("curSkeletonBeta"));
         curSkeletonBeta->setGeometry(QRect(80, 150, 160, 22));
         curSkeletonBeta->setOrientation(Qt::Horizontal);
+        voxel_box = new QCheckBox(ModelHandleClass);
+        voxel_box->setObjectName(QStringLiteral("voxel_box"));
+        voxel_box->setGeometry(QRect(930, 500, 71, 16));
 
         retranslateUi(ModelHandleClass);
 
@@ -675,6 +679,7 @@ public:
         label_40->setText(QApplication::translate("ModelHandleClass", "Alpha:", 0));
         label_41->setText(QApplication::translate("ModelHandleClass", "Beta:", 0));
         SkeletonChangeButton->setText(QApplication::translate("ModelHandleClass", "Change", 0));
+        voxel_box->setText(QApplication::translate("ModelHandleClass", "voxel", 0));
     } // retranslateUi
 
 };

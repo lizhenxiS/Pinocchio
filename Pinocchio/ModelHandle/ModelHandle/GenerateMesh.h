@@ -68,7 +68,7 @@ public:
 	void process();
 
 	//骨骼长度变化后模型映射变化处理
-	void extendMesh(vector<Vector3> oldBonePoint, vector<Vector3> newBonePoint);
+	void extendMesh(vector<Vector3> oldBoneNodePoint, vector<Vector3> newBoneNodePoint);
 
 	//骨骼角度变化后模型映射变化处理
 	void ChangeFromSkeletonRotation();
@@ -90,6 +90,9 @@ public:
 
 	//绘制模型
 	void drawMesh();
+
+	//绘制模型体素
+	void drawVoxel();
 
 	//清空变化容器
 	void clearSkeletonVector();
@@ -139,13 +142,19 @@ public:
 	//更新模型着地凸包
 	void updateModelConvexHull();
 
+	//更新放缩体素(每次放缩骨骼后必须调用)(同时更新体素模型重心、体积)
+	void updateModelVoxelInScale(vector<Vector3> oldBoneNodePoint, vector<Vector3> newBoneNodePoint);
+
 	//绘制模型质心
 	void drawModelCenter();
 
 	//从文件中读取法向量信息
 	void readVerticeNormal(string filename);
 
-	void drawPixel(Pixel p);
+	void drawPixel(Pixel p, Vector3 color);
+
+	//碰撞检测
+	void collisionCheck();
 
 	//更改比例
 	/********************************************/

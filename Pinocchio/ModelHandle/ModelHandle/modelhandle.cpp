@@ -5,13 +5,7 @@
 #include <QtWidgets\qfiledialog.h>
 #include "GenerateTool.h"
 
-extern float angle;
-extern int rotateX;
-extern int rotateY;
-extern int rotateZ;
-extern bool drawSkeleton;
-extern bool drawMesh;
-extern bool drawCoord;
+
 extern bool changeFromMap;
 extern bool SmoothState;
 extern bool StressState;
@@ -32,25 +26,33 @@ ModelHandle::ModelHandle(QWidget *parent)
 void ModelHandle::slotSkeletonBox()
 {
 	if (ui.skeleton_box->isChecked())
-		drawSkeleton = true;
+		ui.showWidget->drawSkeleton = true;
 	else
-		drawSkeleton = false;
+		ui.showWidget->drawSkeleton = false;
 }
 
 void ModelHandle::slotMeshBox()
 {
 	if (ui.mesh_box->isChecked())
-		drawMesh = true;
+		ui.showWidget->drawMesh = true;
 	else
-		drawMesh = false;
+		ui.showWidget->drawMesh = false;
 }
 
 void ModelHandle::slotCoordBox()
 {
 	if (ui.coord_box->isChecked())
-		drawCoord = true;
+		ui.showWidget->drawCoord = true;
 	else
-		drawCoord = false;
+		ui.showWidget->drawCoord = false;
+}
+
+void ModelHandle::slotVoxelBox()
+{
+	if (ui.voxel_box->isChecked())
+		ui.showWidget->drawVoxel = true;
+	else
+		ui.showWidget->drawVoxel = false;
 }
 
 void ModelHandle::slotSmoothBox()
@@ -123,6 +125,8 @@ void ModelHandle::disableSlider()
 	ui.skeleton_box->setEnabled(false);
 	ui.mesh_box->setEnabled(false);
 	ui.coord_box->setEnabled(false);
+	ui.voxel_box->setEnabled(false);
+
 	ui.smoothBox->setEnabled(false);
 	ui.stressBox->setEnabled(false);
 
@@ -180,6 +184,8 @@ void ModelHandle::enableSlider()
 	ui.skeleton_box->setEnabled(true);
 	ui.mesh_box->setEnabled(true);
 	ui.coord_box->setEnabled(true);
+	ui.voxel_box->setEnabled(true);
+
 	ui.smoothBox->setEnabled(true);
 	ui.stressBox->setEnabled(true);
 
@@ -244,6 +250,7 @@ void ModelHandle::initBox()
 	ui.skeleton_box->setChecked(true);
 	ui.mesh_box->setChecked(true);
 	ui.coord_box->setChecked(true);
+	ui.voxel_box->setChecked(true);
 
 	QStringList skeletonNames;
 	skeletonNames << "skeleton1"
@@ -357,6 +364,8 @@ void ModelHandle::setConnect()
 	connect(ui.skeleton_box, SIGNAL(stateChanged(int)), this, SLOT(slotSkeletonBox()));
 	connect(ui.mesh_box, SIGNAL(stateChanged(int)), this, SLOT(slotMeshBox()));
 	connect(ui.coord_box, SIGNAL(stateChanged(int)), this, SLOT(slotCoordBox()));
+	connect(ui.voxel_box, SIGNAL(stateChanged(int)), this, SLOT(slotVoxelBox()));
+
 	connect(ui.smoothBox, SIGNAL(stateChanged(int)), this, SLOT(slotSmoothBox()));
 	connect(ui.stressBox, SIGNAL(stateChanged(int)), this, SLOT(slotStressBox()));
 
@@ -393,25 +402,25 @@ void ModelHandle::slotObj_out()
 
 void ModelHandle::slotRotateX()
 {
-	rotateX = ui.rotate_x->value();
+	ui.showWidget->rotateX = ui.rotate_x->value();
 }
 
 void ModelHandle::slotRotateY()
 {
-	rotateY = ui.rotate_y->value();
+	ui.showWidget->rotateY = ui.rotate_y->value();
 }
 
 void ModelHandle::slotRotateZ()
 {
-	rotateZ = ui.rotate_z->value();
+	ui.showWidget->rotateZ = ui.rotate_z->value();
 }
 
 void ModelHandle::slotUPDOWN()
 {
 	if (ui.updown->value() >= 0)
-		angle = 60. - ui.updown->value() / 2;
+		ui.showWidget->angle = 60. - ui.updown->value() / 2;
 	else
-		angle = 60.0 - ui.updown->value();
+		ui.showWidget->angle = 60.0 - ui.updown->value();
 }
 
 void ModelHandle::slotEnergyButton()

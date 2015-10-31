@@ -72,6 +72,7 @@ private slots:
 	void slotSkeletonBox();
 	void slotMeshBox();
 	void slotCoordBox();
+	void slotVoxelBox();
 
 	void slotSmoothBox();
 	void slotStressBox();

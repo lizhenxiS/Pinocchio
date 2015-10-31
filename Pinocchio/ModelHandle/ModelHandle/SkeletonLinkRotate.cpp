@@ -1,6 +1,7 @@
 
 #include "SkeletonLinkRotate.h"
 #include "GenerateTool.h"
+#include "PixelModel.h"
 
 #define PI 3.1415926
 
@@ -187,6 +188,70 @@ void SkeletonLinkRotate::refreshMesh(const Mesh* m)
 			resultPoint += modelData.attachment->getWeights(i)[j] * temp2;
 		}
 		meshVertices->vertices[i].pos = resultPoint;
+	}
+}
+
+/*
+旋转矩阵更新后刷新体素(同时更新体素模型重心、体积)
+*/
+void SkeletonLinkRotate::refreshVoxel(int verticeCount, PixelModel* pixelModel)
+{
+	//初始化体素模型重心、体积
+	pixelModel->qualityCenter = Vector3(0, 0, 0);
+	pixelModel->modelVolum = 0;
+
+	for (int i = 0; i < verticeCount; i++)
+	{
+		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
+		{
+			Vector3 oldCenter = Vector3(pixelModel->meshPixels[i][j].pos[0],
+				pixelModel->meshPixels[i][j].pos[1], pixelModel->meshPixels[i][j].pos[2]);
+			Vector3 oldBox[8];
+			Vector3 resultCenter = Vector3(0, 0, 0);
+			Vector3 resultBox[8];
+			for (int t = 0; t < 8; t++)
+			{
+				oldBox[t] = Vector3(pixelModel->meshPixels[i][j].box[t][0],
+					pixelModel->meshPixels[i][j].box[t][1], pixelModel->meshPixels[i][j].box[t][2]);
+				resultBox[t] = Vector3(0, 0, 0);
+			}
+			for (int k = 0; k < BONECOUNT; k++)
+			{
+				//体素中心变化部分
+				Vector3 tempCenter1 = linkRotate[k][0].pointRotate(oldCenter);
+				Vector3 tempCenter2 = linkRotate[k][1].pointRotate(tempCenter1);
+				resultCenter += modelData.attachment->getWeights(i)[k] * tempCenter2;
+
+				//体素Box变化部分
+				Vector3 tempBox1[8];
+				Vector3 tempBox2[8];
+				for (int t = 0; t < 8; t++)
+				{
+					tempBox1[t] = linkRotate[k][0].pointRotate(oldBox[t]);
+					tempBox2[t] = linkRotate[k][1].pointRotate(tempBox1[t]);
+					resultBox[t] += modelData.attachment->getWeights(i)[k] * tempBox2[t];
+				}
+			}
+			pixelModel->meshPixels[i][j].pos[0] = resultCenter[0];
+			pixelModel->meshPixels[i][j].pos[1] = resultCenter[1];
+			pixelModel->meshPixels[i][j].pos[2] = resultCenter[2];
+			for (int t = 0; t < 8; t++)
+			{
+				pixelModel->meshPixels[i][j].box[t][0] = resultBox[t][0];
+				pixelModel->meshPixels[i][j].box[t][1] = resultBox[t][1];
+				pixelModel->meshPixels[i][j].box[t][2] = resultBox[t][2];
+			}
+			pixelModel->meshPixels[i][j].updateLWH();
+			pixelModel->modelVolum += pixelModel->meshPixels[i][j].getVolume();
+		}
+	}
+	for (int i = 0; i < verticeCount; i++)
+	{
+		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
+		{
+			pixelModel->qualityCenter += (pixelModel->meshPixels[i][j].getVolume() / pixelModel->modelVolum)
+				* Vector3(pixelModel->meshPixels[i][j].pos[0], pixelModel->meshPixels[i][j].pos[1], pixelModel->meshPixels[i][j].pos[2]);
+		}
 	}
 }
 
