@@ -128,6 +128,9 @@
     <ClCompile Include="SDFGen_makelevelset3.cpp">
       <Filter>SDFGen</Filter>
     </ClCompile>
+    <ClCompile Include="VoxelAttribute.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="modelhandle.h">
@@ -293,6 +296,9 @@
     </ClInclude>
     <ClInclude Include="SDFGen_vec.h">
       <Filter>SDFGen</Filter>
+    </ClInclude>
+    <ClInclude Include="VoxelAttribute.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -163,6 +163,9 @@ private:
 	//体素模型
 	PixelModel* pixelModel = NULL;
 
+	//碰撞区域
+	map<int, vector<int>> collisionArea;
+
 	//模型着地凸包
 	vector<Vector3> convexHull;
 

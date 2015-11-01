@@ -6,6 +6,8 @@
 #include "SDFGen_vec.h"
 #include "SDFGen_array3.h"
 #include "SDFGen_makelevelset3.h"
+#include "mesh.h"
+#include "pinocchioApi.h"
 
 using namespace std;
 
@@ -14,7 +16,7 @@ PixelModel::PixelModel()
 
 }
 
-PixelModel::PixelModel(/*const PinocchioOutput* originData,*/ Mesh* mesh, Vector3 meshMinVertex, Vector3 meshMaxVertex)
+PixelModel::PixelModel(const PinocchioOutput* originData, Mesh* mesh, Vector3 meshMinVertex, Vector3 meshMaxVertex)
 {
 	double initLength = (meshMaxVertex[0] - meshMinVertex[0]) / cutCountX;
 	double initWidth = (meshMaxVertex[1] - meshMinVertex[1]) / cutCountY;
@@ -38,7 +40,6 @@ PixelModel::PixelModel(/*const PinocchioOutput* originData,*/ Mesh* mesh, Vector
 	Vec3f minBox = Vec3f(meshMinVertex[0], meshMinVertex[1], meshMinVertex[2]);
 	Vec3f maxBox = Vec3f(meshMaxVertex[0], meshMaxVertex[1], meshMaxVertex[2]);
 	Vec3f unit(1, 1, 1);
-	float dx = 0.01;	//体素大小
 	int padding = 1;
 	minBox -= padding*dx*unit;
 	maxBox += padding*dx*unit;
@@ -77,7 +78,17 @@ PixelModel::PixelModel(/*const PinocchioOutput* originData,*/ Mesh* mesh, Vector
 						ite->second.push_back(meshPixels[faceVertice[0]].size() - 1);
 					}
 					//TODO 计算表面体素属性
-					//for (int bone = 0; bone < originData->embedding.size() - 1; bone++)
+					double maxWeight = 0;
+					int linkIndex;
+					for (int bone = 0; bone < originData->embedding.size() - 1; bone++)
+					{
+						if (originData->attachment->getWeights(faceVertice[0])[bone] > maxWeight)
+						{
+							linkIndex = bone;
+							maxWeight = originData->attachment->getWeights(faceVertice[0])[bone];
+						}
+					}
+					surfaceVoxelAttribute.push_back(VoxelAttribute(linkIndex, maxWeight, faceVertice[0], meshPixels[faceVertice[0]].size() - 1));
 				}
 
 				modelVolum += dx * dx * dx;

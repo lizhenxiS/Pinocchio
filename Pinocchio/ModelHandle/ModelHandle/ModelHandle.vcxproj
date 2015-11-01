@@ -121,6 +121,7 @@
     <ClCompile Include="taucs_solver.cpp" />
     <ClCompile Include="taucs_util.cpp" />
     <ClCompile Include="glwidget.cpp" />
+    <ClCompile Include="VoxelAttribute.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="modelhandle.h">
@@ -197,6 +198,7 @@
     <ClInclude Include="SDFGen_vec.h" />
     <ClInclude Include="vector.h" />
     <ClInclude Include="vecutils.h" />
+    <ClInclude Include="VoxelAttribute.h" />
     <CustomBuild Include="glwidget.h">
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(QTDIR)\bin\moc.exe;%(FullPath);$(QTDIR)\bin\moc.exe;%(FullPath)</AdditionalInputs>
       <Message Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Moc%27ing glwidget.h...</Message>

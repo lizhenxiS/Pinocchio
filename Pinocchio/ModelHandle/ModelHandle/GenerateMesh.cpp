@@ -15,6 +15,7 @@
 #include <sstream>
 #include <ctime>
 #include <algorithm>
+#include <string>
 
 using namespace std;
 
@@ -137,9 +138,10 @@ GenerateMesh::GenerateMesh(const string& file)
 	process();
 
 	cout << "start to counting pixel model..." << endl;
-	pixelModel = new PixelModel(/*&originData,*/ meshVertices, modelMinPoint, modelMaxPoint);
+	pixelModel = new PixelModel(&originData, meshVertices, modelMinPoint, modelMaxPoint);
 	cout << "表面体素个数：" << pixelModel->surfaceVoxelCount << endl;
 	cout << "finish counting pixel model" << endl;
+	collisionCheck();
 
 	int tempSum = 0;
 	for (int i = 0; i < meshVertices->vertices.size(); i++)
@@ -765,6 +767,7 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 
 	//变化完模型后继续变化体素
 	temp.refreshVoxel(meshVertices->vertices.size(), pixelModel);
+	collisionCheck();
 
 	updateModelCenter();
 	updateModelBottomBox();
@@ -827,8 +830,9 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 
 	extendMesh(oldBoneNodePoint, newBoneNodePoint);
 	updateModelVoxelInScale(oldBoneNodePoint, newBoneNodePoint);
-	CountGrowCustom();
+	collisionCheck();
 
+	CountGrowCustom();
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
@@ -1003,7 +1007,16 @@ void GenerateMesh::drawVoxel()
 			if (ite != pixelModel->surfaceIndex.end()
 				&& std::find(ite->second.begin(), ite->second.end(), j) != ite->second.end())
 			{
-				drawPixel(pixelModel->meshPixels[i][j], Vector3(1, 0, 0));
+				//碰撞区域
+				if (collisionArea.find(i) != collisionArea.end()
+					&& std::find(collisionArea[i].begin(), collisionArea[i].end(), j) != collisionArea[i].end())
+				{
+					drawPixel(pixelModel->meshPixels[i][j], Vector3(1, 0, 0));
+				}
+				else
+				{
+					drawPixel(pixelModel->meshPixels[i][j], Vector3(0, 0, 1));
+				}
 			}
 			else
 			{
@@ -1107,11 +1120,68 @@ void GenerateMesh::updateModelCenter()
 //碰撞检测
 void GenerateMesh::collisionCheck()
 {
-	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	collisionArea.clear();
+	//bool isCrashed = false;
+	//TODO 根据表面体素属性，检测碰撞
+	map<string, VoxelAttribute> spaceAttribute;		//记录空间占用情况：占有坐标与其对应体素
+	for (int i = 0; i < pixelModel->surfaceVoxelCount; i++)
 	{
-		for (int j = 0; j < pixelModel->meshPixels[i].size(); j++)
-		{
+		//当前表面体素各顶点公用属性
+		int linkVertex = pixelModel->surfaceVoxelAttribute[i].linkVertex;
+		int belongIndex = pixelModel->surfaceVoxelAttribute[i].belongIndex;
+		int belongBone = pixelModel->surfaceVoxelAttribute[i].belongBone;
+		double belongWeight = pixelModel->surfaceVoxelAttribute[i].belongWeight;
 
+		for (int t = 0; t < 8; t++)
+		{
+			//当前体素的一个顶点的局部单位坐标 dx为单位长度
+			int localX = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][0] - modelMinPoint[0]) / pixelModel->dx;
+			int localY = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][1] - modelMinPoint[1]) / pixelModel->dx;
+			int localZ = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][2] - modelMinPoint[2]) / pixelModel->dx;
+			string localIndex;	//当前顶点即将占据的空间坐标
+			stringstream ss;
+			ss << "[" << localX << "," << localY << "," << localZ << "]";
+			ss >> localIndex;
+
+			map<string, VoxelAttribute>::iterator ite = spaceAttribute.find(localIndex);
+			if (ite != spaceAttribute.end())
+			{
+				//空间已有体素信息
+				int originBelongBone = spaceAttribute[localIndex].belongBone;
+				double originBelongWeight = spaceAttribute[localIndex].belongWeight;
+				int originLinkVertex = spaceAttribute[localIndex].linkVertex;
+				int originBelongIndex = spaceAttribute[localIndex].belongIndex;
+				if (belongBone != originBelongBone)
+				{
+					if (belongWeight > 0.95 || originBelongWeight > 0.95)
+					{
+						//cout << "\n-----------发生碰撞！！" << endl;
+						//cout << "belongBone   : " << belongBone << " : " << originBelongBone << endl;
+						//cout << "belongWeight : " << belongWeight << " : " << originBelongWeight << endl;
+						//cout << "mapIndex     : " << localIndex << " : " << ite->first << endl;
+						//cout << endl;
+						//isCrashed = true;
+						map<int, vector<int>>::iterator collisionIte = collisionArea.find(linkVertex);
+						if (collisionIte != collisionArea.end())
+						{
+							collisionArea[linkVertex].push_back(belongIndex);
+						}
+						else
+						{
+							vector<int> tempAdd;
+							tempAdd.push_back(belongIndex);
+							collisionArea[linkVertex] = tempAdd;
+						}
+						break;
+					}
+				}
+			}
+			else
+			{
+				spaceAttribute[localIndex] = pixelModel->surfaceVoxelAttribute[i];
+			}
+			//if (isCrashed)
+			//	break;
 		}
 	}
 }
