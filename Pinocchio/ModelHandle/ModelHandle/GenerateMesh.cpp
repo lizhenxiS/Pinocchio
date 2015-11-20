@@ -1121,7 +1121,6 @@ void GenerateMesh::updateModelCenter()
 void GenerateMesh::collisionCheck()
 {
 	collisionArea.clear();
-	//bool isCrashed = false;
 	//TODO 根据表面体素属性，检测碰撞
 	map<string, VoxelAttribute> spaceAttribute;		//记录空间占用情况：占有坐标与其对应体素
 	for (int i = 0; i < pixelModel->surfaceVoxelCount; i++)
@@ -1138,7 +1137,7 @@ void GenerateMesh::collisionCheck()
 			int localX = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][0] - modelMinPoint[0]) / pixelModel->dx;
 			int localY = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][1] - modelMinPoint[1]) / pixelModel->dx;
 			int localZ = (pixelModel->meshPixels[linkVertex][belongIndex].box[t][2] - modelMinPoint[2]) / pixelModel->dx;
-			string localIndex;	//当前顶点即将占据的空间坐标
+			string localIndex;	//当前顶点即将占据的空间坐标                      
 			stringstream ss;
 			ss << "[" << localX << "," << localY << "," << localZ << "]";
 			ss >> localIndex;
@@ -1155,12 +1154,6 @@ void GenerateMesh::collisionCheck()
 				{
 					if (belongWeight > 0.95 || originBelongWeight > 0.95)
 					{
-						//cout << "\n-----------发生碰撞！！" << endl;
-						//cout << "belongBone   : " << belongBone << " : " << originBelongBone << endl;
-						//cout << "belongWeight : " << belongWeight << " : " << originBelongWeight << endl;
-						//cout << "mapIndex     : " << localIndex << " : " << ite->first << endl;
-						//cout << endl;
-						//isCrashed = true;
 						map<int, vector<int>>::iterator collisionIte = collisionArea.find(linkVertex);
 						if (collisionIte != collisionArea.end())
 						{
@@ -1180,8 +1173,6 @@ void GenerateMesh::collisionCheck()
 			{
 				spaceAttribute[localIndex] = pixelModel->surfaceVoxelAttribute[i];
 			}
-			//if (isCrashed)
-			//	break;
 		}
 	}
 }
