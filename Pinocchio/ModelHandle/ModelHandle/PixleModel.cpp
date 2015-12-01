@@ -16,6 +16,9 @@ PixelModel::PixelModel()
 
 }
 
+/*
+原始模型中各顶点权重信息 模型顶点/边信息 模型最小位置集合 模型最大位置集合
+*/
 PixelModel::PixelModel(const PinocchioOutput* originData, Mesh* mesh, Vector3 meshMinVertex, Vector3 meshMaxVertex)
 {
 	double initLength = (meshMaxVertex[0] - meshMinVertex[0]) / cutCountX;
@@ -31,7 +34,7 @@ PixelModel::PixelModel(const PinocchioOutput* originData, Mesh* mesh, Vector3 me
 	{
 		faceList.push_back(Vec3ui(mesh->edges[i].vertex, mesh->edges[i + 1].vertex, mesh->edges[i + 2].vertex));
 	}
-	cout << "tri face size :" << faceList.size() << endl;
+	//cout << "tri face size :" << faceList.size() << endl;
 	vector<Vec3f> vertList;
 	for (int i = 0; i < mesh->vertices.size(); i++)
 	{ 
@@ -46,7 +49,7 @@ PixelModel::PixelModel(const PinocchioOutput* originData, Mesh* mesh, Vector3 me
 	Vec3ui sizes = Vec3ui((maxBox - minBox) / dx);
 	Array3f phi_grid;
 	Array3i closeF = make_level_set3(faceList, vertList, minBox, dx, sizes[0], sizes[1], sizes[2], phi_grid);
-	cout << "参与处理体素点数：" << sizes[0] * sizes[1] * sizes[2] << endl;
+	//cout << "参与处理体素点数：" << sizes[0] * sizes[1] * sizes[2] << endl;
 	modelVolum = 0;
 	for (int k = 0; k < sizes[2]; k++)
 	{
@@ -105,13 +108,13 @@ PixelModel::PixelModel(const PinocchioOutput* originData, Mesh* mesh, Vector3 me
 		}
 	}
 
-	cout << "顶点数 ： " << verticeCount << endl;
+	//cout << "顶点数 ： " << verticeCount << endl;
 	int pointSum = 0;
 	for (int i = 0; i < verticeCount; i++)
 	{
 		pointSum += meshPixels[i].size();
 	}
-	cout << "模型体素数：" << pointSum << endl;
+	//cout << "模型体素数：" << pointSum << endl;
 }
 
 

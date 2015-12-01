@@ -109,10 +109,15 @@ void GenerateMesh::readVerticeNormal(string filename)
 	file.close();
 }
 
-
 //读取人体模型初始化数据
 GenerateMesh::GenerateMesh(const string& file)
 {
+	int tempDOF[BONECOUNT] = {
+		0, 0, 2, 0, 2, 1, 2, 0,
+		2, 1, 2, 1, 2, 1, 1, 2, 1
+	};
+	for (int i = 0; i < BONECOUNT; i++)
+		defaultDOF[i] = tempDOF[i];
 	initColor();
 	initSkeletonWidth();
 
@@ -137,21 +142,10 @@ GenerateMesh::GenerateMesh(const string& file)
 	modelQualityCenter /= meshVertices->vertices.size();
 	process();
 
-	cout << "start to counting pixel model..." << endl;
-	pixelModel = new PixelModel(&originData, meshVertices, modelMinPoint, modelMaxPoint);
-	cout << "表面体素个数：" << pixelModel->surfaceVoxelCount << endl;
-	cout << "finish counting pixel model" << endl;
-	collisionCheck();
-
-	int tempSum = 0;
-	for (int i = 0; i < meshVertices->vertices.size(); i++)
-	{
-		tempSum += pixelModel->meshPixels[i].size();
-	}
-	cout << "实际绘制点数量：" << tempSum << endl;
-
 	if (verts != meshVertices->vertices.size())
 		system("pause");
+	for (int i = 0; i < BONECOUNT; i++)
+		skeletonScale[i] = 1;
 
 	changedIndex = new bool[embedding.size()];
 	for (int i = 0; i < embedding.size(); i++)
@@ -163,6 +157,24 @@ GenerateMesh::GenerateMesh(const string& file)
 	Stress_size = 0;
 	cout << meshVertices->edges.size() << " ___half" << endl;
 	cout << "Generate Mesh Success !" << embedding.size() << endl;
+}
+
+//生成体素信息
+void GenerateMesh::generateVoxel()
+{
+	cout << "start to counting pixel model..." << endl;
+	pixelModel = new PixelModel(&originData, meshVertices, modelMinPoint, modelMaxPoint);
+	cout << "表面体素个数：" << pixelModel->surfaceVoxelCount << endl;
+	cout << "finish counting pixel model" << endl;
+
+	//collisionCheck();
+
+	int tempSum = 0;
+	for (int i = 0; i < meshVertices->vertices.size(); i++)
+	{
+		tempSum += pixelModel->meshPixels[i].size();
+	}
+	cout << "实际绘制点数量：" << tempSum << endl;
 }
 
 int pixelcolorr = 0;
@@ -421,9 +433,9 @@ void GenerateMesh::process()
 	//system("time");
 	
 
-	bonePointCount = originData.embedding.size();
-	boneOriginLen = new double[bonePointCount - 1];
-	skeletonNodeInformation = new SkeletonNode[bonePointCount];
+	//BONENODECOUNT = originData.embedding.size();
+	boneOriginLen = new double[BONENODECOUNT - 1];
+	skeletonNodeInformation = new SkeletonNode[BONENODECOUNT];
 	
 	//获取骨骼初始长度及节点前后关系
 	for (int y = 1; y < originData.embedding.size(); y++)
@@ -448,14 +460,14 @@ void GenerateMesh::process()
 	}
 
 	//各骨骼距离规范化energy
-	deltaEnergy = new double[bonePointCount];
+	deltaEnergy = new double[BONENODECOUNT];
 
 	//除去 0 下标
 	deltaEnergy[0] = -1;
 
 	//各骨骼期待向规范方向增长比例
-	expectGrowScale = new double[bonePointCount];
-	for (int i = 1; i < bonePointCount; i++)
+	expectGrowScale = new double[BONENODECOUNT];
+	for (int i = 1; i < BONENODECOUNT; i++)
 	{
 		expectGrowScale[i] = 0;
 	}
@@ -466,7 +478,7 @@ void GenerateMesh::process()
 	temppoint[1] = 0.0;
 	temppoint[2] = 0.0;
 
-	for (int j = 0; j < bonePointCount; j++)
+	for (int j = 0; j < BONENODECOUNT; j++)
 	{
 		tempInitbone.push_back(temppoint);
 	}
@@ -506,7 +518,7 @@ void GenerateMesh::CountGrowCustom()
 		//每个骨骼期望该点所在位置
 		Vector3 temp;
 
-		for (int j = 1; j < bonePointCount; j++)
+		for (int j = 1; j < BONENODECOUNT; j++)
 		{
 			//头部期望的点增长
 			if (j == HEAD)
@@ -568,7 +580,7 @@ void GenerateMesh::MeshGrowCustom()
 		for (int k = 0; k < 3; k++)
 		{
 			tempExpect[k] = 0;
-			for (int j = 1; j < bonePointCount; j++)
+			for (int j = 1; j < BONENODECOUNT; j++)
 			{
 				tempExpect[k] += originData.attachment->getWeights(i)[j - 1] * ExpectGrow[i][j][k] * expectGrowScale[j];
 			}
@@ -657,7 +669,6 @@ void dis_CG()
 	cg_girl.push_back(temp);
 }
 
-
 //骨骼角度变化后模型映射变化处理
 void GenerateMesh::ChangeFromSkeletonRotation()
 {
@@ -669,7 +680,7 @@ void GenerateMesh::changeSkeletonFromMap()
 {
 	dis_CG();
 
-	for (int i = 1; i < bonePointCount; i++)
+	for (int i = 1; i < BONENODECOUNT; i++)
 	{
 		double scale;
 		scale = getDistance(cg_girl[i], cg_girl[skeletonNodeInformation[i].parentIndex]) / getDistance(originData.embedding[i], originData.embedding[skeletonNodeInformation[i].parentIndex]);
@@ -737,25 +748,25 @@ void GenerateMesh::initRotateAngleArray()
 	}
 }
 
-//任意自由度改变骨骼，并相对静止牵动关联骨骼
+//任意自由度改变骨骼，并相对静止牵动关联骨骼   ---旋转骨骼
 //bone 为骨骼序数，0 - 16
 void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 {
 	if (bone == 0 || bone == 2 || bone == 11 || bone == 14)
 	{
 		//cout << "this skeletons can not be changed now" << endl;
-		cout << "this skeletons will be deal innormal in SkeletonLinkRotate" << endl;
+		//cout << "this skeletons will be deal innormal in SkeletonLinkRotate" << endl;
 		//return;
 	}
-	double tempAlpha = alpha - rotateAngle[bone][0];
-	double tempBeta = beta - rotateAngle[bone][1];
+	double tempAlpha = alpha - rotateAngle[bone][0];	//角度增量
+	double tempBeta = beta - rotateAngle[bone][1];		//角度增量
 	rotateAngle[bone][0] = alpha;
 	rotateAngle[bone][1] = beta;
 
 	//将实际骨骼旋转
 	SkeletonLinkRotate temp(originData, embedding, skeletonNodeInformation);
 	temp.rotateSkeleton(bone, embedding, tempAlpha, tempBeta);
-	for (int j = 0; j < bonePointCount; j++)
+	for (int j = 0; j < BONENODECOUNT; j++)
 	{
 		embedding[j] = temp.skeletonPoints[j];
 	}
@@ -765,19 +776,25 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 		meshVertices->vertices[i].pos = temp.meshVertices->vertices[i].pos;
 	}
 
-	//变化完模型后继续变化体素
-	temp.refreshVoxel(meshVertices->vertices.size(), pixelModel);
-	collisionCheck();
+
 
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
 }
 
-//同步改变单一骨骼
+//旋转后更新体素信息
+void GenerateMesh::updateVoxelAftRotate(SkeletonLinkRotate* temp)
+{
+	//变化完模型后继续变化体素
+	temp->refreshVoxel(meshVertices->vertices.size(), pixelModel);
+	//collisionCheck();
+}
+
+//同步改变单一骨骼                             --- 放缩骨骼
 void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 {
-
+	skeletonScale[boneNode - 1] = scale;
 	vector<Vector3> oldBoneNodePoint;
 	vector<Vector3> newBoneNodePoint;
 
@@ -829,7 +846,7 @@ void GenerateMesh::changeSingleSkeleton(const int boneNode, const double scale)
 	}
 
 	extendMesh(oldBoneNodePoint, newBoneNodePoint);
-	updateModelVoxelInScale(oldBoneNodePoint, newBoneNodePoint);
+	//updateModelVoxelInScale(oldBoneNodePoint, newBoneNodePoint);
 	collisionCheck();
 
 	CountGrowCustom();
@@ -978,7 +995,7 @@ void GenerateMesh::updateModelVoxelInScale(vector<Vector3> oldBoneNodePoint, vec
 //绘制骨骼shunj 
 void GenerateMesh::drawSkeleton()
 {
-	for (int i = 1; i < bonePointCount; i++)
+	for (int i = 1; i < BONENODECOUNT; i++)
 	{
 		if (changedIndex[i])
 			drawLine(embedding[i], embedding[skeletonNodeInformation[i].parentIndex], color_Tran, thin);
@@ -996,6 +1013,9 @@ void GenerateMesh::drawSkeleton()
 //绘制模型体素
 void GenerateMesh::drawVoxel()
 {
+	if (pixelModel == NULL)
+		return;
+
 	for (int i = 0; i < meshVertices->vertices.size(); i++)
 	{
 		int tempCount = pixelModel->meshPixels[i].size();
@@ -1025,7 +1045,6 @@ void GenerateMesh::drawVoxel()
 		}
 	}
 }
-
 
 #define MODELBOTTOMSCALE 0.005
 
@@ -1088,12 +1107,11 @@ void GenerateMesh::drawModelCenter()
 //绘制骨骼结点
 void GenerateMesh::drawSkeletonPoint()
 {
-	for (int i = 0; i < bonePointCount; i++)
+	for (int i = 0; i < BONENODECOUNT; i++)
 	{
 		drawPoint(embedding[i], thin * 2, Vector3(0, 0, 1));
 	}
 }
-
 
 //计算模型质心
 void GenerateMesh::updateModelCenter()
@@ -1112,15 +1130,454 @@ void GenerateMesh::updateModelCenter()
 		modelMaxPoint[2] = modelMaxPoint[2] > tempPoint[2] ? modelMaxPoint[2] : tempPoint[2];
 	}
 
-	modelQualityCenter = pixelModel->qualityCenter;
+	if (pixelModel != NULL)
+		modelQualityCenter = pixelModel->qualityCenter;
+	else
+		modelQualityCenter = Vector3(0, 0, 0);
 
 	cout << "当前模型重心为：" << modelQualityCenter << endl;
+}
+
+
+//遍历每个骨骼旋转迭代函数 将循环骨骼建立数组 依次根据骨骼序号获取骨骼旋转可变范围
+/*约束剪枝条件1：四肢的旋转具有局部性，子骨骼的变化与父骨骼变化趋势一致才有意义*/
+/*约束剪枝条件2：因为对于有父子关联的骨骼，子骨骼的旋转趋势一定跟随父骨骼，则当父骨骼发生碰撞时，子骨骼的后续变化已无意义*/
+void GenerateMesh::circleSkeleton(int index, int* rankArray, double skeletonChange[17][2], 
+	vector<Vector3> prevEmbedding, MyVerticeMesh prevMesh, MyVerticeMesh* originMesh)
+{
+	if (index > BONECOUNT || index == BONECOUNT)
+	{
+		for (int k = 0; k < prevMesh.vertices.size(); k++)
+		{
+			meshVertices->vertices[k].pos = prevMesh.vertices[k].pos;
+		}
+		//叶子结点碰撞检测
+		if (!collisionCheckNoVoxel())
+		{
+			vector<double> temp;
+			temp.resize(BONECOUNT * 2);
+			for (int i = 0; i < BONECOUNT; i++)
+			{
+				for (int j = 0; j < 2; j++)
+				{
+					temp[i * 2 + j] = skeletonChange[i][j];
+				}
+			}
+			SafetyRotation.push_back(temp);
+			//cout << "find a safety item" << endl;
+		}
+		if (originMesh == NULL)
+		{
+			cout << "ERROR : ORIGINMESH NULL" << endl;
+			SELFDEBUG;
+		}
+		if (originMesh->vertices.size() != meshVertices->vertices.size())
+		{
+			cout << "ERROR : SIZE ERROR" << endl;
+			SELFDEBUG;
+		}
+		for (int k = 0; k < originMesh->vertices.size(); k++)
+		{
+			meshVertices->vertices[k].pos = originMesh->vertices[k].pos;
+		}
+		return;
+	}
+	//特殊骨骼序号
+	const int LEFTFOREARM = 15;
+	const int LEFTREARARM = 16;
+	const int RIGHTFOREARM = 12;
+	const int RIGHTREARARM = 13;
+	const int LEFTTHIGH = 8;
+	const int LEFTCALF = 9;
+	const int RIGHTTHIGH = 4;
+	const int RIGHTCALF = 5;
+
+	bool onlyIncrease = false;
+	bool onlyDecrease = false;
+
+	int bone = rankArray[index] - 1;
+	switch (bone)
+	{
+	case LEFTREARARM:
+		if (skeletonChange[LEFTFOREARM][0] > 0)
+			onlyIncrease = true;
+		else if (skeletonChange[LEFTFOREARM][0] < 0)
+			onlyDecrease = true;
+		break;
+	case RIGHTREARARM:
+		if (skeletonChange[RIGHTFOREARM][0] > 0)
+			onlyIncrease = true;
+		else if (skeletonChange[RIGHTFOREARM][0] < 0)
+			onlyDecrease = true;
+		break;
+	case LEFTCALF:
+		if (skeletonChange[LEFTTHIGH][1] > 0)
+			onlyIncrease = true;
+		else if (skeletonChange[LEFTTHIGH][1] < 0)
+			onlyDecrease = true;
+		break;
+	case RIGHTCALF:
+		if (skeletonChange[RIGHTTHIGH][1] > 0)
+			onlyIncrease = true;
+		else if (skeletonChange[RIGHTTHIGH][1] < 0)
+			onlyDecrease = true;
+		break;
+	default:
+		break;
+	}
+
+	int DOF = defaultDOF[bone];
+	int STEP = 2;
+	int TIMES = 2;
+	double tempDeltaAlpha;
+	double tempDeltaBeta;
+	double maxDeltaAlpha;
+	double minDeltaAlpha;
+	double maxDeltaBeta;
+	double minDeltaBeta;
+	switch (DOF)
+	{
+	case 0:
+		cout << "index: " << index << "bone: " << bone << "DOF: " << DOF << endl;
+		break;
+	case 1:
+		cout << "index: " << index << "bone: " << bone << "DOF: " << DOF << endl;
+		for (int i = 0; i <= 2 * TIMES; i++)
+		{
+			if (onlyIncrease)
+			{
+				if (i > TIMES)
+					break;
+			}
+			if (onlyDecrease)
+			{
+				if (i != 0 && i < TIMES)
+					i = TIMES + 1;
+			}
+			if (i <= TIMES)
+				tempDeltaAlpha = i * STEP;
+			else
+				tempDeltaAlpha = -(i - TIMES) * STEP;
+			SkeletonLinkRotate temp(originData, prevEmbedding, skeletonNodeInformation);
+			temp.rotateSkeleton(bone, prevEmbedding, tempDeltaAlpha, 0);
+			for (int k = 0; k < BONENODECOUNT; k++)
+			{
+				prevEmbedding[k] = temp.skeletonPoints[k];
+			}
+			temp.refreshMesh(&prevMesh);
+			for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
+			{
+				prevMesh.vertices[k].pos = temp.meshVertices->vertices[k].pos;
+			}
+			skeletonChange[bone][0] = tempDeltaAlpha;
+			skeletonChange[bone][1] = 0;
+			MyVerticeMesh curMesh(prevMesh);
+			circleSkeleton(++index, rankArray, skeletonChange, prevEmbedding, prevMesh, originMesh);
+		}
+		break;
+	case 2:
+		cout << "index: " << index << "bone: " << bone << "DOF: " << DOF << endl;
+		for (int i = 0; i <= 2 * TIMES; i++)
+		{
+			for (int j = 0; j <= 2 * TIMES; j++)
+			{
+				if (i <= TIMES)
+					tempDeltaAlpha = i * STEP;
+				else	
+					tempDeltaAlpha = -(i - TIMES) * STEP;
+				if (j <= TIMES)
+					tempDeltaBeta = j * STEP;
+				else
+					tempDeltaBeta = -(j - TIMES) * STEP;
+				SkeletonLinkRotate temp(originData, prevEmbedding, skeletonNodeInformation);
+				temp.rotateSkeleton(bone, prevEmbedding, tempDeltaAlpha, tempDeltaBeta);
+				for (int k = 0; k < BONENODECOUNT; k++)
+				{
+					prevEmbedding[k] = temp.skeletonPoints[k];
+				}
+				temp.refreshMesh(&prevMesh);
+				for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
+				{
+					prevMesh.vertices[k].pos = temp.meshVertices->vertices[k].pos;
+				}
+				skeletonChange[bone][0] = tempDeltaAlpha;
+				skeletonChange[bone][1] = tempDeltaBeta;
+				MyVerticeMesh curMesh(prevMesh);
+				circleSkeleton(++index, rankArray, skeletonChange, prevEmbedding, prevMesh, originMesh);
+			}
+		}
+		break;
+	}
+}
+
+//检测骨骼当前相对起始模型旋转角度安全范围
+void GenerateMesh::checkSafetyRotateScope()
+{
+	SELFDEBUG;
+	int rankArray[17] = { 3, 12, 13, 14, 15, 16, 17, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11 };
+	double skeletonChange[17][2];
+	for (int i = 0; i < BONECOUNT; i++)
+	{
+		for (int j = 0; j < 2; j++)
+			skeletonChange[i][j] = 0;
+	}
+	vector<Vector3> prevEmbedding;									//起始骨骼顶点位置信息
+	MyVerticeMesh* prevMesh = new MyVerticeMesh(*meshVertices);
+	MyVerticeMesh* originMesh = new MyVerticeMesh(*meshVertices);		//起始模型顶点信息
+	for (int i = 0; i < BONENODECOUNT; i++)
+	{
+		prevEmbedding.push_back(embedding[i]);
+	}
+	circleSkeleton(0, rankArray, skeletonChange, prevEmbedding, *prevMesh, originMesh);
+	SELFDEBUG;
+	/*
+	此部分作为后期能量优化处理部分,已默认所有骨骼旋转改变程度不会太大
+	因此以STEP为范围步长，对骨骼可安全旋转范围进行检测
+	在当前骨骼旋转角的前提下，以增减TIMES个步长为最大考虑范围
+	*/
+	//const int STEP = 2;
+	//const int TIMES = 3;
+	//const int ROOT = 0;
+	//double originRotateAngle[BONECOUNT][2];								//为保证检测完成后模型没有变化，记录起始角度
+	//vector<Vector3> originEmbedding;									//起始骨骼顶点位置信息
+	//MyVerticeMesh* originMesh = new MyVerticeMesh(*meshVertices);		//起始模型顶点信息
+	//for (int i = 0; i < BONECOUNT; i++)
+	//{
+	//	for (int j = 0; j < 2; j++)
+	//	{
+	//		originRotateAngle[i][j] = rotateAngle[i][j];
+	//	}
+	//}
+	//for (int i = 0; i < BONENODECOUNT; i++)
+	//{
+	//	originEmbedding.push_back(embedding[i]);
+	//}
+	//
+	////遍历root下的每个骨骼的旋转范围
+	//for (int i = 0; i < skeletonNodeInformation[ROOT].childrenIndex.size(); i++)
+	//{
+	//	int childNode = skeletonNodeInformation[ROOT].childrenIndex[i];
+	//	int bone = childNode - 1;
+	//	safetyRotateScope[bone][0] = originRotateAngle[bone][0];
+	//	safetyRotateScope[bone][1] = originRotateAngle[bone][0];
+	//	safetyRotateScope[bone][2] = originRotateAngle[bone][1];
+	//	safetyRotateScope[bone][3] = originRotateAngle[bone][1];
+
+	//	switch (defaultDOF[bone])
+	//	{
+	//	case 0:
+	//		break;
+	//	case 1:
+	//		double maxAlpha = originRotateAngle[bone][0];
+	//		double minAlpha = originRotateAngle[bone][0];
+	//		for (int j = 1; j <= 2 * TIMES; j++)
+	//		{
+	//			double tempDelta;
+	//			if (j <= TIMES)
+	//				tempDelta = j * STEP;
+	//			else
+	//				tempDelta = -(j - TIMES) * STEP;
+	//			//将骨骼从起始位置旋转到模拟位置，进而改变模型
+	//			SkeletonLinkRotate temp(originData, originEmbedding, skeletonNodeInformation);
+	//			temp.rotateSkeleton(bone, originEmbedding, tempDelta, 0);
+	//			for (int k = 0; k < BONENODECOUNT; k++)
+	//			{
+	//				embedding[k] = temp.skeletonPoints[k];
+	//			}
+	//			temp.refreshMesh(originMesh);
+	//			for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
+	//			{
+	//				meshVertices->vertices[k].pos = temp.meshVertices->vertices[k].pos;
+	//			}
+	//			//检测该情况下是否存在碰撞
+	//			if (collisionCheckNoVoxel())
+	//			{
+	//				//发生碰撞，弹出当前单调区间
+	//				if (j <= TIMES)
+	//				{
+	//					maxAlpha = originRotateAngle[bone][0] + (j - 1) * STEP;
+	//					j = TIMES;
+	//				}
+	//				else
+	//				{
+	//					minAlpha = originRotateAngle[bone][0] - (j - 1 - TIMES) * STEP;
+	//					break;
+	//				}
+	//			}
+	//			else
+	//			{
+	//				if (j <= TIMES)
+	//				{
+	//					maxAlpha = originRotateAngle[bone][0] + tempDelta;
+	//				}
+	//				else
+	//				{
+	//					minAlpha = originRotateAngle[bone][0] + tempDelta;
+	//				}
+	//			}
+	//		}
+	//		safetyRotateScope[bone][0] = minAlpha;
+	//		safetyRotateScope[bone][1] = maxAlpha;
+	//		break;
+	//	case 2:
+	//		//所得区间将为最小区间，最小max值  最大min值
+	//		double maxAlpha = 180;
+	//		double minAlpha = -180;
+	//		double maxBeta = 180;
+	//		double minBeta = -180;
+	//		for (int j = 0; j <= 2 * TIMES; j++)
+	//		{
+	//			double tempAlphaDelta;
+	//			if (j <= TIMES)
+	//				tempAlphaDelta = j * STEP;
+	//			else
+	//				tempAlphaDelta = -(j - TIMES) * STEP;
+	//			for (int m = 0; m <= 2 * TIMES; m++)
+	//			{
+	//				double tempBetaDelta;
+	//				if (m <= TIMES)
+	//					tempBetaDelta = m * STEP;
+	//				else
+	//					tempBetaDelta = -(m - TIMES) * STEP;
+
+	//				//将骨骼从起始位置旋转到模拟位置，进而改变模型
+	//				SkeletonLinkRotate temp(originData, originEmbedding, skeletonNodeInformation);
+	//				temp.rotateSkeleton(bone, originEmbedding, tempAlphaDelta, tempBetaDelta);
+	//				for (int k = 0; k < BONENODECOUNT; k++)
+	//				{
+	//					embedding[k] = temp.skeletonPoints[k];
+	//				}
+	//				temp.refreshMesh(originMesh);
+	//				for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
+	//				{
+	//					meshVertices->vertices[k].pos = temp.meshVertices->vertices[k].pos;
+	//				}
+	//				//检测该情况下是否存在碰撞
+	//				if (collisionCheckNoVoxel())
+	//				{
+	//					//发生碰撞，弹出当前单调区间
+	//					if (m <= TIMES)
+	//					{
+	//						double tempAlpha = originRotateAngle[bone][0] + (j - 1) * STEP;
+	//						double tempBeta = originRotateAngle[bone][1] + (m - 1) * STEP;
+	//						if (tempAlpha < maxAlpha)
+	//							maxAlpha = tempAlpha;
+	//						if (tempBeta < maxBeta)
+	//							maxBeta = tempBeta;
+
+	//						//仅因为alpha引起的碰撞
+	//						if (m == 0)
+	//						{
+	//							if (j <= TIMES)
+	//								j = TIMES;
+	//						}
+	//						else
+	//						{
+	//							//仅因为beta引起的碰撞
+	//							m = TIMES;
+	//						}
+	//					}
+	//					else
+	//					{
+	//						double tempAlpha = originRotateAngle[bone][0] - (j - 1 - TIMES) * STEP;
+	//						double tempBeta = originRotateAngle[bone][1] - (m - 1 - TIMES) * STEP;
+	//						if (tempAlpha > minAlpha)
+	//							minAlpha = tempAlpha;
+	//						if (tempBeta > minBeta)
+	//							minBeta = tempBeta;
+	//						break;
+	//					}
+	//				}
+	//			}
+	//		}
+	//		safetyRotateScope[bone][0] = minAlpha;
+	//		safetyRotateScope[bone][1] = maxAlpha;
+	//		safetyRotateScope[bone][2] = minBeta;
+	//		safetyRotateScope[bone][3] = maxBeta;
+	//		break;
+	//	}
+	// }
+
+
+
+
+}
+
+//无体素生成碰撞检测(将体素部分包含在内)
+bool GenerateMesh::collisionCheckNoVoxel()
+{
+	/*
+	碰撞检测部分
+	*/
+	PixelModel *tempPixelModel = new PixelModel(&originData, meshVertices, modelMinPoint, modelMaxPoint);
+	map<int, vector<int>> tempCollisionArea;
+	map<string, VoxelAttribute> spaceAttribute;		//记录空间占用情况：占有坐标与其对应体素
+	bool isCollision = false;
+	for (int i = 0; i < tempPixelModel->surfaceVoxelCount; i++)
+	{
+		//当前表面体素各顶点公用属性
+		int linkVertex = tempPixelModel->surfaceVoxelAttribute[i].linkVertex;
+		int belongIndex = tempPixelModel->surfaceVoxelAttribute[i].belongIndex;
+		int belongBone = tempPixelModel->surfaceVoxelAttribute[i].belongBone;
+		double belongWeight = tempPixelModel->surfaceVoxelAttribute[i].belongWeight;
+
+		for (int t = 0; t < 8; t++)
+		{
+			//当前体素的一个顶点的局部单位坐标 dx为单位长度
+			int localX = (tempPixelModel->meshPixels[linkVertex][belongIndex].box[t][0] - modelMinPoint[0]) / tempPixelModel->dx;
+			int localY = (tempPixelModel->meshPixels[linkVertex][belongIndex].box[t][1] - modelMinPoint[1]) / tempPixelModel->dx;
+			int localZ = (tempPixelModel->meshPixels[linkVertex][belongIndex].box[t][2] - modelMinPoint[2]) / tempPixelModel->dx;
+			string localIndex;	//当前顶点即将占据的空间坐标                      
+			stringstream ss;
+			ss << "[" << localX << "," << localY << "," << localZ << "]";
+			ss >> localIndex;
+
+			map<string, VoxelAttribute>::iterator ite = spaceAttribute.find(localIndex);
+			if (ite != spaceAttribute.end())
+			{
+				//空间已有体素信息
+				int originBelongBone = spaceAttribute[localIndex].belongBone;
+				double originBelongWeight = spaceAttribute[localIndex].belongWeight;
+				int originLinkVertex = spaceAttribute[localIndex].linkVertex;
+				int originBelongIndex = spaceAttribute[localIndex].belongIndex;
+				if (belongBone != originBelongBone)
+				{
+					if (belongWeight > 0.95 || originBelongWeight > 0.95)
+					{
+						isCollision = true;
+						map<int, vector<int>>::iterator collisionIte = tempCollisionArea.find(linkVertex);
+						if (collisionIte != tempCollisionArea.end())
+						{
+							tempCollisionArea[linkVertex].push_back(belongIndex);
+						}
+						else
+						{
+							vector<int> tempAdd;
+							tempAdd.push_back(belongIndex);
+							tempCollisionArea[linkVertex] = tempAdd;
+						}
+						break;
+					}
+				}
+			}
+			else
+			{
+				spaceAttribute[localIndex] = tempPixelModel->surfaceVoxelAttribute[i];
+			}
+		}
+	}
+	
+	delete tempPixelModel;
+	return isCollision;
 }
 
 //碰撞检测
 void GenerateMesh::collisionCheck()
 {
 	collisionArea.clear();
+	if (pixelModel == NULL)
+		return;
+
 	//TODO 根据表面体素属性，检测碰撞
 	map<string, VoxelAttribute> spaceAttribute;		//记录空间占用情况：占有坐标与其对应体素
 	for (int i = 0; i < pixelModel->surfaceVoxelCount; i++)
@@ -1230,7 +1687,7 @@ void GenerateMesh::clearSkeletonVector()
 void GenerateMesh::clearModelChange()
 {
 
-	for (int i = 0; i < bonePointCount; i++)
+	for (int i = 0; i < BONENODECOUNT; i++)
 	{
 		changedIndex[i] = false;
 	}
@@ -1300,7 +1757,6 @@ Vector3 GenerateMesh::getModelCenter()
 	return modelQualityCenter;
 }
 
-
 //寻找点击范围内的点
 vector<int> temp_stress_find;
 
@@ -1321,11 +1777,11 @@ void GenerateMesh::FindVertex(double x, double y)
 		area_smooth++;
 	}
 
-	double *temp_distance = new double[2*(bonePointCount - 1)];
+	double *temp_distance = new double[2*(BONENODECOUNT - 1)];
 	int index = 0;
-	for (int i = 0; i < bonePointCount - 1; i++)
+	for (int i = 0; i < BONENODECOUNT - 1; i++)
 		temp_distance[2*i] = 9999;
-	for (int i = 0; i < bonePointCount - 1; i++)
+	for (int i = 0; i < BONENODECOUNT - 1; i++)
 		temp_distance[2*i+1] = 0;
 
 	//cout << VertexNeighbor.size() << endl;
@@ -1355,7 +1811,7 @@ void GenerateMesh::FindVertex(double x, double y)
 					}	
 					if (StressState)
 					{
-						for (int j = 0; j < bonePointCount - 1; j++)
+						for (int j = 0; j < BONENODECOUNT - 1; j++)
 						{
 							//标记的每一个点在每一个骨骼上的投影距离与已有最值进行比较
 							double temp = getDistance(proj(originData.embedding[skeletonNodeInformation[j + 1].parentIndex], originData.embedding[j + 1], copy_MeshVertices->vertices[i].pos), copy_MeshVertices->vertices[i].pos);
@@ -1387,7 +1843,7 @@ void GenerateMesh::FindVertex(double x, double y)
 	if (StressState)
 	{
 		stressArea.resize(area_stress);
-		for (int j = 0; j < bonePointCount - 1; j++)
+		for (int j = 0; j < BONENODECOUNT - 1; j++)
 		{
 			stressArea[area_stress-1].push_back(temp_distance[2*j]);
 			stressArea[area_stress-1].push_back(temp_distance[2*j+1]);
@@ -1427,7 +1883,7 @@ void GenerateMesh::FindVertex(double x, double y)
 void GenerateMesh::CountingEnergy() 
 {
 	int vertices_size = meshVertices->vertices.size();
-	int row = vertices_size * (2 + bonePointCount - 2 + 1) + Stress_size * (bonePointCount - 1);	//bonePointCount-2为除去头部的骨骼数
+	int row = vertices_size * (2 + BONENODECOUNT - 2 + 1) + Stress_size * (BONENODECOUNT - 1);	//BONENODECOUNT-2为除去头部的骨骼数
 	int col = vertices_size;
 
 
@@ -1467,7 +1923,7 @@ void GenerateMesh::CountingEnergy()
 
 			///////3
 			double skeleton_weight = 0;
-			for (int t = 1; t < bonePointCount; t++)
+			for (int t = 1; t < BONENODECOUNT; t++)
 			{
 				if (t == HEAD)
 					continue;
@@ -1487,12 +1943,12 @@ void GenerateMesh::CountingEnergy()
 			if (verticesToSmooth.count(j))
 			{
 				temp = sqrt(WEIGHT_S * SMOOTH_A);
-				M_x.set_coef(vertices_size * (2 + bonePointCount - 2 + 1) - 1 - j, j, temp);
+				M_x.set_coef(vertices_size * (2 + BONENODECOUNT - 2 + 1) - 1 - j, j, temp);
 			}
 			else
 			{
 				temp = sqrt(WEIGHT_S * SMOOTH_B);
-				M_x.set_coef(vertices_size * (2 + bonePointCount - 2 + 1) - 1 - j, j, temp);
+				M_x.set_coef(vertices_size * (2 + BONENODECOUNT - 2 + 1) - 1 - j, j, temp);
 			}
 			
 		}
@@ -1544,7 +2000,7 @@ void GenerateMesh::CountingEnergy()
 					else
 						temp = -(sqrt(WEIGHT_S * SMOOTH_B) / VertexNeighbor[j].size());
 					//system("pause");
-					M_x.set_coef(vertices_size * (2 + bonePointCount - 2 + 1) - 1 - j, i, temp);
+					M_x.set_coef(vertices_size * (2 + BONENODECOUNT - 2 + 1) - 1 - j, i, temp);
 				}
 			}
 		}
@@ -1555,7 +2011,7 @@ void GenerateMesh::CountingEnergy()
 		if (Stress_size != 0)
 		{
 			double temp;
-			for (int b = 0; b < bonePointCount - 1; b++)
+			for (int b = 0; b < BONENODECOUNT - 1; b++)
 			{
 				int line = 0;
 				for (map<int, int>::iterator stress_it = verticesToStress.begin(); stress_it != verticesToStress.end(); stress_it++)
@@ -1566,7 +2022,7 @@ void GenerateMesh::CountingEnergy()
 					line++;
 					//system("pause");
 					temp = sqrt(WEIGHT_A * originData.attachment->getWeights(stress_it->first)[b]);
-					M_x.set_coef((vertices_size * (2 + bonePointCount - 2 + 1) - 1) + b * Stress_size + line, stress_it->first, temp);
+					M_x.set_coef((vertices_size * (2 + BONENODECOUNT - 2 + 1) - 1) + b * Stress_size + line, stress_it->first, temp);
 					//system("pause");
 				}
 			}
@@ -1603,7 +2059,7 @@ void GenerateMesh::CountingEnergy()
 		for (i = 0; i < vertices_size; i++)
 		{
 			double skeleton_b = 0;
-			for (int j = 1; j < bonePointCount; j++)
+			for (int j = 1; j < BONENODECOUNT; j++)
 			{
 				if (j == HEAD)
 					continue;
@@ -1625,7 +2081,7 @@ void GenerateMesh::CountingEnergy()
 		//从下而上填充
 		if (Stress_size != 0)
 		{
-			for (int bone = 0; bone < bonePointCount - 1; bone++)
+			for (int bone = 0; bone < BONENODECOUNT - 1; bone++)
 			{
 				int line = 0;
 				for (map<int, int>::iterator stress_it = verticesToStress.begin(); stress_it != verticesToStress.end(); stress_it++)
@@ -1672,7 +2128,7 @@ void GenerateMesh::CountingEnergy()
 					//	}
 					//	system("pause");
 					//}
-					b[(vertices_size * (2 + bonePointCount - 2 + 1) - 1) + bone * Stress_size + line] = sqrt(WEIGHT_A * originData.attachment->getWeights(stress_it->first)[bone]) * temp_vi_Bi;
+					b[(vertices_size * (2 + BONENODECOUNT - 2 + 1) - 1) + bone * Stress_size + line] = sqrt(WEIGHT_A * originData.attachment->getWeights(stress_it->first)[bone]) * temp_vi_Bi;
 				}
 			}
 		}
@@ -1686,7 +2142,7 @@ void GenerateMesh::CountingEnergy()
 		//	{
 		//		double temp_vertice_vi_Bj_total = 0;
 
-		//		for (int j = 1; j < bonePointCount; j++)
+		//		for (int j = 1; j < BONENODECOUNT; j++)
 		//		{
 		//			double d_vi = getDistance(proj(embedding[preIndex[j]], embedding[j], copy_m->vertices[i - 4 * vertices_size].pos), copy_m->vertices[i - 4 * vertices_size].pos);
 		//			double d_min = stressArea[verticesToStress[i - 4 * vertices_size] - 1][2 * (j - 1)];
@@ -1718,7 +2174,7 @@ void GenerateMesh::CountingEnergy()
 		//		if (j == i)
 		//		{
 		//			double skeleton_weight = 0;
-		//			for (int t = 1; t < bonePointCount; t++)
+		//			for (int t = 1; t < BONENODECOUNT; t++)
 		//			{
 		//				if (t == HEAD)
 		//					continue;
@@ -1773,7 +2229,7 @@ void GenerateMesh::CountingEnergy()
 		//{
 		//	temp = 0;
 		//	double skeleton_b = 0;
-		//	for (int j = 1; j < bonePointCount; j++)
+		//	for (int j = 1; j < BONENODECOUNT; j++)
 		//	{
 		//		if (j == HEAD)
 		//			continue;
@@ -1786,7 +2242,7 @@ void GenerateMesh::CountingEnergy()
 		//	{
 		//		double temp_vertice_vi_Bj_total = 0;
 
-		//		for (int j = 1; j < bonePointCount; j++)
+		//		for (int j = 1; j < BONENODECOUNT; j++)
 		//		{
 		//			double d_vi = getDistance(proj(embedding[preIndex[j]], embedding[j], copy_m->vertices[i].pos), copy_m->vertices[i].pos);
 		//			double d_min = stressArea[verticesToStress[i]-1][2 * (j - 1)];

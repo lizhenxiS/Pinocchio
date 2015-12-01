@@ -26,7 +26,7 @@ public :
 	SkeletonInfo skeletonInfo[BONECOUNT];	//骨骼自由度信息
 	Vector3 skeletonPoints[BONECOUNT + 1];	//骨骼位置信息
 	MyVerticeMesh* meshVertices;			//模型点位置信息
-	PinocchioOutput modelData;				//weight等各种信息
+	PinocchioOutput weightData;				//weight等各种信息
 	OnceRotation linkRotate[BONECOUNT][2];	//骨骼旋转轴旋转角信息
 
 	void initDefaultSkeleton();	//输入标架角度信息
@@ -37,7 +37,7 @@ public :
 	void refreshVoxel(int verticeCount, PixelModel* pixelModel);	//旋转矩阵更新后刷新体素 pointNode为旋转中心点，即主动骨骼起始点(同时更新体素模型重心、体积)
 
 	SkeletonLinkRotate();
-	SkeletonLinkRotate(const PinocchioOutput modelData, const vector<Vector3>& points,
+	SkeletonLinkRotate(const PinocchioOutput weightData, const vector<Vector3>& points,
 		 SkeletonNode* skeletonNodeInformation);
 	~SkeletonLinkRotate();
 };

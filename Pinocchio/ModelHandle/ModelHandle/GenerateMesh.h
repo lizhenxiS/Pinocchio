@@ -13,6 +13,7 @@
 #include "SkeletonNode.h"
 #include "PixelModel.h"
 
+class SkeletonLinkRotate;
 #define BONECOUNT 17
 
 struct ArgData
@@ -121,6 +122,18 @@ public:
 	//骨骼相对起始模型旋转角度数组
 	double rotateAngle[BONECOUNT][2];
 
+	//骨骼相对起始模型旋转角度安全范围缓冲区
+	double safetyRotateScope[BONECOUNT][4];
+
+	//检测骨骼当前相对起始模型旋转角度安全范围
+	void checkSafetyRotateScope();
+
+	//遍历每个骨骼旋转迭代函数 将循环骨骼建立数组 依次根据骨骼序号获取骨骼旋转可变范围
+	void circleSkeleton(int index, int* rankArray, double skeletonChange[17][2], vector<Vector3> prevEmbedding, MyVerticeMesh prevMesh, MyVerticeMesh* originMesh);
+
+	//骨骼相对起始模型放缩倍数数组
+	double skeletonScale[BONECOUNT];
+
 	//初始化记录骨骼旋转角数组
 	void initRotateAngleArray();
 
@@ -156,6 +169,16 @@ public:
 	//碰撞检测
 	void collisionCheck();
 
+	//无体素生成碰撞检测(将体素部分包含在内)
+	bool collisionCheckNoVoxel();
+
+	//生成体素信息
+	void generateVoxel();
+
+	//旋转后更新体素信息
+	void updateVoxelAftRotate(SkeletonLinkRotate* temp);
+
+
 	//更改比例
 	/********************************************/
 
@@ -187,7 +210,7 @@ private:
 	//待改变的骨骼序号组
 	vector<changeBone> cBones;
 	//总骨骼数+1 = 18
-	int bonePointCount;
+	const int BONENODECOUNT = 18;
 
 	//骨骼信息
 	SkeletonNode* skeletonNodeInformation = NULL;
@@ -245,9 +268,6 @@ private:
 	Vector3 color_Skele; 
 
 
-
-
-
 	//变化骨骼颜色
 	Vector3 color_Tran;
 	//骨骼厚度
@@ -257,7 +277,9 @@ private:
 	//????
 	Vector3 trans;
 
+	vector<vector<double>> SafetyRotation;
 
+	int defaultDOF[BONECOUNT];
 };
 
 

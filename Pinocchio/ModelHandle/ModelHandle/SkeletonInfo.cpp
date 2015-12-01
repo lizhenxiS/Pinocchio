@@ -12,3 +12,4 @@ SkeletonInfo::SkeletonInfo(int free)
 	this->freeActor = free;
 }
 
+

@@ -10,12 +10,12 @@ SkeletonLinkRotate::SkeletonLinkRotate()
 
 }
 
-SkeletonLinkRotate::SkeletonLinkRotate(const PinocchioOutput modelData,
+SkeletonLinkRotate::SkeletonLinkRotate(const PinocchioOutput weightData,
 	const vector<Vector3>& points,
 	SkeletonNode* skeletonNodeInformation)
 {
 	this->skeletonNodeInformation = skeletonNodeInformation;
-	this->modelData = modelData;
+	this->weightData = weightData;
 	initDefaultSkeleton();
 	for (int i = 0; i < BONECOUNT + 1; i++)
 	{
@@ -46,7 +46,7 @@ void SkeletonLinkRotate::rotateSkeleton(const int bone, const vector<Vector3>& p
 	int prepreIndex;
 	if (bone == 0 || bone == 2 || bone == 11 || bone == 14)
 	{
-		cout << "this skeletons has been dealt innormal there" << endl;
+		//cout << "this skeletons has been dealt innormal there" << endl;
 		switch (boneNode)
 		{
 		case 1:
@@ -160,7 +160,7 @@ void SkeletonLinkRotate::refreshMesh(const MyVerticeMesh* m)
 		{
 			Vector3 temp1 = linkRotate[j][0].pointRotate(tempPoint);
 			Vector3 temp2 = linkRotate[j][1].pointRotate(temp1);
-			resultPoint += modelData.attachment->getWeights(i)[j] * temp2;
+			resultPoint += weightData.attachment->getWeights(i)[j] * temp2;
 		}
 		meshVertices->vertices[i].pos = resultPoint;
 	}
@@ -185,7 +185,7 @@ void SkeletonLinkRotate::refreshMesh(const Mesh* m)
 		{
 			Vector3 temp1 = linkRotate[j][0].pointRotate(tempPoint);
 			Vector3 temp2 = linkRotate[j][1].pointRotate(temp1);
-			resultPoint += modelData.attachment->getWeights(i)[j] * temp2;
+			resultPoint += weightData.attachment->getWeights(i)[j] * temp2;
 		}
 		meshVertices->vertices[i].pos = resultPoint;
 	}
@@ -220,7 +220,7 @@ void SkeletonLinkRotate::refreshVoxel(int verticeCount, PixelModel* pixelModel)
 				//体素中心变化部分
 				Vector3 tempCenter1 = linkRotate[k][0].pointRotate(oldCenter);
 				Vector3 tempCenter2 = linkRotate[k][1].pointRotate(tempCenter1);
-				resultCenter += modelData.attachment->getWeights(i)[k] * tempCenter2;
+				resultCenter += weightData.attachment->getWeights(i)[k] * tempCenter2;
 
 				//体素Box变化部分
 				Vector3 tempBox1[8];
@@ -229,7 +229,7 @@ void SkeletonLinkRotate::refreshVoxel(int verticeCount, PixelModel* pixelModel)
 				{
 					tempBox1[t] = linkRotate[k][0].pointRotate(oldBox[t]);
 					tempBox2[t] = linkRotate[k][1].pointRotate(tempBox1[t]);
-					resultBox[t] += modelData.attachment->getWeights(i)[k] * tempBox2[t];
+					resultBox[t] += weightData.attachment->getWeights(i)[k] * tempBox2[t];
 				}
 			}
 			pixelModel->meshPixels[i][j].pos[0] = resultCenter[0];
