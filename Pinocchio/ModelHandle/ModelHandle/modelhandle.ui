@@ -570,6 +570,24 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
+   <widget class="QPushButton" name="AutoAdjustButton">
+    <property name="geometry">
+     <rect>
+      <x>14</x>
+      <y>300</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>AutoAdjust</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QCheckBox" name="voxel_box">
    <property name="geometry">

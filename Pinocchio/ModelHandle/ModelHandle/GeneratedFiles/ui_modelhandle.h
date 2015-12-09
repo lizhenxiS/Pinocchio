@@ -71,6 +71,7 @@ public:
     QSlider *curSkeletonBeta;
     QLabel *label_42;
     QSlider *curSkeletonScale;
+    QPushButton *AutoAdjustButton;
     QCheckBox *voxel_box;
     QPushButton *ScopeButton;
 
@@ -278,6 +279,10 @@ public:
         curSkeletonScale->setObjectName(QStringLiteral("curSkeletonScale"));
         curSkeletonScale->setGeometry(QRect(80, 200, 160, 22));
         curSkeletonScale->setOrientation(Qt::Horizontal);
+        AutoAdjustButton = new QPushButton(groupBox_2);
+        AutoAdjustButton->setObjectName(QStringLiteral("AutoAdjustButton"));
+        AutoAdjustButton->setGeometry(QRect(14, 300, 91, 23));
+        AutoAdjustButton->setFont(font1);
         voxel_box = new QCheckBox(ModelHandleClass);
         voxel_box->setObjectName(QStringLiteral("voxel_box"));
         voxel_box->setGeometry(QRect(930, 500, 71, 16));
@@ -316,6 +321,7 @@ public:
         label_41->setText(QApplication::translate("ModelHandleClass", "Beta:", 0));
         SkeletonChangeButton->setText(QApplication::translate("ModelHandleClass", "Change", 0));
         label_42->setText(QApplication::translate("ModelHandleClass", "Scale:", 0));
+        AutoAdjustButton->setText(QApplication::translate("ModelHandleClass", "AutoAdjust", 0));
         voxel_box->setText(QApplication::translate("ModelHandleClass", "voxel", 0));
         ScopeButton->setText(QApplication::translate("ModelHandleClass", "CountScope", 0));
     } // retranslateUi

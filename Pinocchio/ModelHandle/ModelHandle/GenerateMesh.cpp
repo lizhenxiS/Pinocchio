@@ -174,6 +174,7 @@ void GenerateMesh::generateVoxel()
 	{
 		tempSum += pixelModel->meshPixels[i].size();
 	}
+	pixelModel->innerPixelCount = tempSum;
 	cout << "实际绘制点数量：" << tempSum << endl;
 }
 
@@ -776,8 +777,6 @@ void GenerateMesh::changeSkeleton(const int bone, double alpha, double beta)
 		meshVertices->vertices[i].pos = temp.meshVertices->vertices[i].pos;
 	}
 
-
-
 	updateModelCenter();
 	updateModelBottomBox();
 	updateModelConvexHull();
@@ -1138,6 +1137,66 @@ void GenerateMesh::updateModelCenter()
 	cout << "当前模型重心为：" << modelQualityCenter << endl;
 }
 
+#define BONECOUNT 17
+#define BONENODECOUNT 18
+
+//自动优化函数
+void GenerateMesh::autoAdjust()
+{
+	double SHAPEWEIGHT = 0.5;
+	double STANDWEIGHT = 0.5;
+	double optimizedDeltaTheta[BONECOUNT]; 
+
+	generateVoxel();
+	Vector3 skeletonArray[BONECOUNT][2];				//L
+	Vector3 normalizedSkeleton[BONECOUNT];				//NL
+	int voxelCount = pixelModel->innerPixelCount;
+	double* voxelWeight[BONECOUNT];						//每个骨骼所产生的对每个体素的权重
+	Vector3* p[BONECOUNT];								//VC-Lai 体素(中心)位置减去骨骼起点(旋转中心)位置向量
+
+	for (int i = 0; i < BONECOUNT; i++)
+	{
+		int bone = i + 1;
+		skeletonArray[i][0] = embedding[skeletonNodeInformation[bone].parentIndex];
+		skeletonArray[i][1] = embedding[bone];
+		normalizedSkeleton[i] = normalize(skeletonArray[i][1] - skeletonArray[i][0]);
+	}
+
+	
+	for (int i = 0; i < BONECOUNT; i++)
+	{
+		voxelWeight[i] = new double[voxelCount];
+		p[i] = new Vector3[voxelCount];
+
+		int voxelIndex = 0;
+		for (int j = 0; j < meshVertices->vertices.size(); j++)
+		{
+			for (int t = 0; t < pixelModel->meshPixels[j].size(); t++)
+			{
+				voxelWeight[i][voxelIndex] = originData.attachment->getWeights(j)[i];
+				p[i][voxelIndex] = Vector3(pixelModel->meshPixels[j][t].pos[0],
+					pixelModel->meshPixels[j][t].pos[1], pixelModel->meshPixels[j][t].pos[2]) - skeletonArray[i][0];
+				voxelIndex++;
+			}
+		}
+	}
+
+	//最小二乘法 求偏导 遍历逐个theta求解最优
+	//二分法求解最优theta
+	for (int i = 0; i < BONECOUNT; i++)
+	{
+		double thetaCoefficient = SHAPEWEIGHT;
+		double sin_thetaCoefficient = 0;
+		double cos_thetaCoefficient = 0;
+		for (int t = 0; t < voxelCount; t++)
+		{
+			//TODO...............
+			sin_thetaCoefficient += 1231231231;
+			cos_thetaCoefficient += 2313121123;
+		}
+	}
+
+}
 
 //遍历每个骨骼旋转迭代函数 将循环骨骼建立数组 依次根据骨骼序号获取骨骼旋转可变范围
 /*约束剪枝条件1：四肢的旋转具有局部性，子骨骼的变化与父骨骼变化趋势一致才有意义*/
@@ -1632,6 +1691,12 @@ void GenerateMesh::collisionCheck()
 			}
 		}
 	}
+}
+
+//优化
+void GenerateMesh::autoOptimization()
+{
+
 }
 
 //绘制模型

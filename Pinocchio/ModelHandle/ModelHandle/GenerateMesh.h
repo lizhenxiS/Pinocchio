@@ -178,6 +178,11 @@ public:
 	//旋转后更新体素信息
 	void updateVoxelAftRotate(SkeletonLinkRotate* temp);
 
+	//自动优化函数
+	void autoAdjust();
+
+	//优化
+	void autoOptimization();
 
 	//更改比例
 	/********************************************/

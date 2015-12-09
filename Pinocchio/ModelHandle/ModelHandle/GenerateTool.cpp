@@ -66,18 +66,6 @@ Vector3 rotateArroundLine(Vector3 point, Vector3 lineStart, Vector3 lineEnd, dou
 		localRotateVector[8] * localPoint[0] + localRotateVector[9] * localPoint[1] + localRotateVector[10] * localPoint[2]
 		);
 	Vector3 result = localResult + lineStart;
-	//cout << "point       : " << point << endl;
-	//cout << "linestart   : " << lineStart << endl;
-	//cout << "lineend     : " << lineEnd << endl;
-	//cout << "linenormal  : " << lineVector << endl;
-	//cout << "localpoint  : " << localPoint << endl;
-	//cout << "localresult : " << localResult << endl;
-	//cout << "angle       : " << angle << endl;
-	//cout << localRotateVector[0] << " , " << localRotateVector[1] << " , " << localRotateVector[2] << " , " << localRotateVector[3] << endl;
-	//cout << localRotateVector[4] << " , " << localRotateVector[5] << " , " << localRotateVector[6] << " , " << localRotateVector[7] << endl;
-	//cout << localRotateVector[8] << " , " << localRotateVector[9] << " , " << localRotateVector[10] << " , " << localRotateVector[11] << endl;
-	//cout << localRotateVector[12] << " , " << localRotateVector[13] << " , " << localRotateVector[14] << " , " << localRotateVector[15] << endl;
-	//cout << "result      : " << result << endl;
 	return result;
 }
 
