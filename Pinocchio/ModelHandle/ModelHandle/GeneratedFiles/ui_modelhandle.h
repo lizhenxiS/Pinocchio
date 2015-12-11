@@ -74,6 +74,7 @@ public:
     QPushButton *AutoAdjustButton;
     QCheckBox *voxel_box;
     QPushButton *ScopeButton;
+    QPushButton *optButton;
 
     void setupUi(QWidget *ModelHandleClass)
     {
@@ -289,6 +290,9 @@ public:
         ScopeButton = new QPushButton(ModelHandleClass);
         ScopeButton->setObjectName(QStringLiteral("ScopeButton"));
         ScopeButton->setGeometry(QRect(640, 460, 75, 23));
+        optButton = new QPushButton(ModelHandleClass);
+        optButton->setObjectName(QStringLiteral("optButton"));
+        optButton->setGeometry(QRect(730, 460, 75, 23));
 
         retranslateUi(ModelHandleClass);
 
@@ -324,6 +328,7 @@ public:
         AutoAdjustButton->setText(QApplication::translate("ModelHandleClass", "AutoAdjust", 0));
         voxel_box->setText(QApplication::translate("ModelHandleClass", "voxel", 0));
         ScopeButton->setText(QApplication::translate("ModelHandleClass", "CountScope", 0));
+        optButton->setText(QApplication::translate("ModelHandleClass", "Optimize", 0));
     } // retranslateUi
 
 };

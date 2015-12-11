@@ -16,6 +16,7 @@
 #include <ctime>
 #include <algorithm>
 #include <string>
+#include "levmar.h"
 
 using namespace std;
 
@@ -175,7 +176,7 @@ void GenerateMesh::generateVoxel()
 		tempSum += pixelModel->meshPixels[i].size();
 	}
 	pixelModel->innerPixelCount = tempSum;
-	cout << "实际绘制点数量：" << tempSum << endl;
+	cout << "实际绘制体素点数量：" << tempSum << endl;
 }
 
 int pixelcolorr = 0;
@@ -1389,177 +1390,6 @@ void GenerateMesh::checkSafetyRotateScope()
 	}
 	circleSkeleton(0, rankArray, skeletonChange, prevEmbedding, *prevMesh, originMesh);
 	SELFDEBUG;
-	/*
-	此部分作为后期能量优化处理部分,已默认所有骨骼旋转改变程度不会太大
-	因此以STEP为范围步长，对骨骼可安全旋转范围进行检测
-	在当前骨骼旋转角的前提下，以增减TIMES个步长为最大考虑范围
-	*/
-	//const int STEP = 2;
-	//const int TIMES = 3;
-	//const int ROOT = 0;
-	//double originRotateAngle[BONECOUNT][2];								//为保证检测完成后模型没有变化，记录起始角度
-	//vector<Vector3> originEmbedding;									//起始骨骼顶点位置信息
-	//MyVerticeMesh* originMesh = new MyVerticeMesh(*meshVertices);		//起始模型顶点信息
-	//for (int i = 0; i < BONECOUNT; i++)
-	//{
-	//	for (int j = 0; j < 2; j++)
-	//	{
-	//		originRotateAngle[i][j] = rotateAngle[i][j];
-	//	}
-	//}
-	//for (int i = 0; i < BONENODECOUNT; i++)
-	//{
-	//	originEmbedding.push_back(embedding[i]);
-	//}
-	//
-	////遍历root下的每个骨骼的旋转范围
-	//for (int i = 0; i < skeletonNodeInformation[ROOT].childrenIndex.size(); i++)
-	//{
-	//	int childNode = skeletonNodeInformation[ROOT].childrenIndex[i];
-	//	int bone = childNode - 1;
-	//	safetyRotateScope[bone][0] = originRotateAngle[bone][0];
-	//	safetyRotateScope[bone][1] = originRotateAngle[bone][0];
-	//	safetyRotateScope[bone][2] = originRotateAngle[bone][1];
-	//	safetyRotateScope[bone][3] = originRotateAngle[bone][1];
-
-	//	switch (defaultDOF[bone])
-	//	{
-	//	case 0:
-	//		break;
-	//	case 1:
-	//		double maxAlpha = originRotateAngle[bone][0];
-	//		double minAlpha = originRotateAngle[bone][0];
-	//		for (int j = 1; j <= 2 * TIMES; j++)
-	//		{
-	//			double tempDelta;
-	//			if (j <= TIMES)
-	//				tempDelta = j * STEP;
-	//			else
-	//				tempDelta = -(j - TIMES) * STEP;
-	//			//将骨骼从起始位置旋转到模拟位置，进而改变模型
-	//			SkeletonLinkRotate temp(originData, originEmbedding, skeletonNodeInformation);
-	//			temp.rotateSkeleton(bone, originEmbedding, tempDelta, 0);
-	//			for (int k = 0; k < BONENODECOUNT; k++)
-	//			{
-	//				embedding[k] = temp.skeletonPoints[k];
-	//			}
-	//			temp.refreshMesh(originMesh);
-	//			for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
-	//			{
-	//				meshVertices->vertices[k].pos = temp.meshVertices->vertices[k].pos;
-	//			}
-	//			//检测该情况下是否存在碰撞
-	//			if (collisionCheckNoVoxel())
-	//			{
-	//				//发生碰撞，弹出当前单调区间
-	//				if (j <= TIMES)
-	//				{
-	//					maxAlpha = originRotateAngle[bone][0] + (j - 1) * STEP;
-	//					j = TIMES;
-	//				}
-	//				else
-	//				{
-	//					minAlpha = originRotateAngle[bone][0] - (j - 1 - TIMES) * STEP;
-	//					break;
-	//				}
-	//			}
-	//			else
-	//			{
-	//				if (j <= TIMES)
-	//				{
-	//					maxAlpha = originRotateAngle[bone][0] + tempDelta;
-	//				}
-	//				else
-	//				{
-	//					minAlpha = originRotateAngle[bone][0] + tempDelta;
-	//				}
-	//			}
-	//		}
-	//		safetyRotateScope[bone][0] = minAlpha;
-	//		safetyRotateScope[bone][1] = maxAlpha;
-	//		break;
-	//	case 2:
-	//		//所得区间将为最小区间，最小max值  最大min值
-	//		double maxAlpha = 180;
-	//		double minAlpha = -180;
-	//		double maxBeta = 180;
-	//		double minBeta = -180;
-	//		for (int j = 0; j <= 2 * TIMES; j++)
-	//		{
-	//			double tempAlphaDelta;
-	//			if (j <= TIMES)
-	//				tempAlphaDelta = j * STEP;
-	//			else
-	//				tempAlphaDelta = -(j - TIMES) * STEP;
-	//			for (int m = 0; m <= 2 * TIMES; m++)
-	//			{
-	//				double tempBetaDelta;
-	//				if (m <= TIMES)
-	//					tempBetaDelta = m * STEP;
-	//				else
-	//					tempBetaDelta = -(m - TIMES) * STEP;
-
-	//				//将骨骼从起始位置旋转到模拟位置，进而改变模型
-	//				SkeletonLinkRotate temp(originData, originEmbedding, skeletonNodeInformation);
-	//				temp.rotateSkeleton(bone, originEmbedding, tempAlphaDelta, tempBetaDelta);
-	//				for (int k = 0; k < BONENODECOUNT; k++)
-	//				{
-	//					embedding[k] = temp.skeletonPoints[k];
-	//				}
-	//				temp.refreshMesh(originMesh);
-	//				for (int k = 0; k < temp.meshVertices->vertices.size(); k++)
-	//				{
-	//					meshVertices->vertices[k].pos = temp.meshVertices->vertices[k].pos;
-	//				}
-	//				//检测该情况下是否存在碰撞
-	//				if (collisionCheckNoVoxel())
-	//				{
-	//					//发生碰撞，弹出当前单调区间
-	//					if (m <= TIMES)
-	//					{
-	//						double tempAlpha = originRotateAngle[bone][0] + (j - 1) * STEP;
-	//						double tempBeta = originRotateAngle[bone][1] + (m - 1) * STEP;
-	//						if (tempAlpha < maxAlpha)
-	//							maxAlpha = tempAlpha;
-	//						if (tempBeta < maxBeta)
-	//							maxBeta = tempBeta;
-
-	//						//仅因为alpha引起的碰撞
-	//						if (m == 0)
-	//						{
-	//							if (j <= TIMES)
-	//								j = TIMES;
-	//						}
-	//						else
-	//						{
-	//							//仅因为beta引起的碰撞
-	//							m = TIMES;
-	//						}
-	//					}
-	//					else
-	//					{
-	//						double tempAlpha = originRotateAngle[bone][0] - (j - 1 - TIMES) * STEP;
-	//						double tempBeta = originRotateAngle[bone][1] - (m - 1 - TIMES) * STEP;
-	//						if (tempAlpha > minAlpha)
-	//							minAlpha = tempAlpha;
-	//						if (tempBeta > minBeta)
-	//							minBeta = tempBeta;
-	//						break;
-	//					}
-	//				}
-	//			}
-	//		}
-	//		safetyRotateScope[bone][0] = minAlpha;
-	//		safetyRotateScope[bone][1] = maxAlpha;
-	//		safetyRotateScope[bone][2] = minBeta;
-	//		safetyRotateScope[bone][3] = maxBeta;
-	//		break;
-	//	}
-	// }
-
-
-
-
 }
 
 //无体素生成碰撞检测(将体素部分包含在内)
@@ -1696,7 +1526,88 @@ void GenerateMesh::collisionCheck()
 //优化
 void GenerateMesh::autoOptimization()
 {
+	for (int i = 0; i < BONECOUNT; i++)
+	{
+		Vector3 temp = embedding[i + 1] - embedding[skeletonNodeInformation[i + 1].parentIndex];
+		norSkel[i] = normalize(temp);
+	}
 
+	int m = BONECOUNT - 4;
+	int n = BONECOUNT - 4;		//能量式除去零自由度骨骼
+	int itemax = 100;
+	double p[BONECOUNT - 4];
+	double x[BONECOUNT - 4];
+	double opts[LM_OPTS_SZ], info[LM_INFO_SZ];
+	opts[0] = LM_INIT_MU; opts[1] = 1E-15; opts[2] = 1E-15; opts[3] = 1E-20;
+	opts[4] = LM_DIFF_DELTA;
+	for (int i = 0; i < BONECOUNT - 4; i++)
+	{
+		p[i] = 0;
+		x[i] = 0;
+	}
+
+	std::cout << this << endl;
+	generateVoxel();
+	int ret = dlevmar_dif(levmarFunc, p, x, m, n, itemax, opts, info, NULL, NULL, this);
+	printf("Levenberg-Marquardt returned %d in %g iter, reason %g\nSolution: ", ret, info[5], info[6]);
+	for (int i = 0; i<m; ++i)
+		printf("%.7g ", p[i]);
+	printf("\n\nMinimization info:\n");
+	for (int i = 0; i<LM_INFO_SZ; ++i)
+		printf("%g ", info[i]);
+	printf("\n");
+}
+
+#define WEIGHT_SHAPE 0.5 
+#define WEIGHT_STAND 0.5
+#define WEIGHT_ZERO 3
+
+//levmar measurement
+/*用于存储最小能量计算函数式*/
+void levmarFunc(double *p, double *x, int m, int n, void *data)
+{
+	GenerateMesh* meshInfo = ((GenerateMesh*)data);
+	if (meshInfo->pixelModel == NULL)
+	{
+		cout << "PIXELMODEL NULL" << endl;
+		SELFDEBUG;
+	}
+	int voxelCount = meshInfo->pixelModel->innerPixelCount;
+	int skelCount = BONECOUNT;
+	int verticeSize = meshInfo->meshVertices->vertices.size();
+	int skel[BONECOUNT - 4] = {2, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16};	//0 1 3 7 
+
+	for (int i = 0; i < n; i++)
+	{
+		x[i] = 0;
+		x[i] += WEIGHT_SHAPE * p[i] * p[i];
+		double sinthe = sin(p[i] * PI / 180);
+		double costhe = cos(p[i] * PI / 180);
+		int skelIndex = skel[i];
+
+		for (int j = 0; j < verticeSize; j++)
+		{
+			for (int t = 0; t < meshInfo->pixelModel->meshPixels[j].size(); t++)
+			{
+				Vector3 VL = Vector3(meshInfo->pixelModel->meshPixels[j][t].pos[0],
+					meshInfo->pixelModel->meshPixels[j][t].pos[1],
+					meshInfo->pixelModel->meshPixels[j][t].pos[2])
+					- meshInfo->embedding[meshInfo->skeletonNodeInformation[skelIndex + 1].parentIndex];
+
+				double voxlX = (meshInfo->norSkel[skelIndex][0] * meshInfo->norSkel[skelIndex][0] + (1 - meshInfo->norSkel[skelIndex][0] * meshInfo->norSkel[skelIndex][0]) * costhe) * VL[0]
+					+ (meshInfo->norSkel[skelIndex][0] * meshInfo->norSkel[skelIndex][1] * (1 - costhe) + meshInfo->norSkel[skelIndex][2] * sinthe) * VL[1]
+					+ (meshInfo->norSkel[skelIndex][0] * meshInfo->norSkel[skelIndex][2] * (1 - costhe) - meshInfo->norSkel[skelIndex][1] * sinthe) * VL[2]
+					+ meshInfo->embedding[meshInfo->skeletonNodeInformation[skelIndex + 1].parentIndex][0];
+				double voxlZ = (meshInfo->norSkel[skelIndex][0] * meshInfo->norSkel[skelIndex][2] * (1 - costhe) + meshInfo->norSkel[skelIndex][1] * sinthe) * VL[0]
+					+ (meshInfo->norSkel[skelIndex][1] * meshInfo->norSkel[skelIndex][2] * (1 - costhe) - meshInfo->norSkel[skelIndex][0] * sinthe) * VL[1]
+					+ (meshInfo->norSkel[skelIndex][2] * meshInfo->norSkel[skelIndex][2] + (1 - meshInfo->norSkel[skelIndex][2] * meshInfo->norSkel[skelIndex][2]) * costhe) * VL[2]
+					+ meshInfo->embedding[meshInfo->skeletonNodeInformation[skelIndex + 1].parentIndex][2];
+
+				x[i] += WEIGHT_STAND * (meshInfo->originData.attachment->getWeights(j)[skelIndex] * voxlX - (meshInfo->pixelModel->qualityCenter[0] / n));
+				x[i] += WEIGHT_STAND * (meshInfo->originData.attachment->getWeights(j)[skelIndex] * voxlZ - (meshInfo->pixelModel->qualityCenter[2] / n));
+			}
+		}
+	}
 }
 
 //绘制模型

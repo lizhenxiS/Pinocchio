@@ -206,6 +206,12 @@ void ModelHandle::setConnect()
 	connect(ui.SkeletonChangeButton, SIGNAL(clicked()), this, SLOT(slotBVHChange()));
 	connect(ui.curSkeletonScale, SIGNAL(valueChanged(int)), this, SLOT(slotSkeletonScale()));
 	connect(ui.ScopeButton, SIGNAL(clicked()), this, SLOT(slotScopeButton()));
+	connect(ui.optButton, SIGNAL(clicked()), this, SLOT(slotOptButton()));
+}
+
+void ModelHandle::slotOptButton()
+{
+	ui.showWidget->model->autoOptimization();
 }
 
 void ModelHandle::slotScopeButton()

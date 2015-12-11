@@ -46,6 +46,7 @@ private slots:
 	void slotSkeletonScale();
 
 	void slotScopeButton();
+	void slotOptButton();
 };
 
 #endif // MODELHANDLE_H

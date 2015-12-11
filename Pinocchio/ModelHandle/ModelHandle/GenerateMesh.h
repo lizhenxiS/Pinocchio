@@ -184,6 +184,9 @@ public:
 	//优化
 	void autoOptimization();
 
+	//levmar measurement 
+	friend void levmarFunc(double *p, double *x, int m, int n, void *data);
+
 	//更改比例
 	/********************************************/
 
@@ -226,6 +229,8 @@ private:
 	double* expectGrowScale = NULL;
 	//每个骨骼期望该点所在位置
 	vector<vector<Vector3>> ExpectGrow;
+	//当前骨骼的单位方向向量
+	Vector3 norSkel[BONECOUNT];
 
 
 	//骨骼模型（实时骨骼数据）
